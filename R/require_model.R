@@ -1,4 +1,4 @@
-# cerebro names no default LLM model: a model id goes stale, and which
+# cerebelo names no default LLM model: a model id goes stale, and which
 # model an instance runs is the instance's choice. Every function that
 # calls a model checks for one first, so a missing model fails before
 # any work is done. `what` names the caller for a config-file error.
@@ -9,9 +9,9 @@
         return(invisible(model))
     }
     if (is.null(what)) {
-        stop("cerebro: `model` is required; pass an LLM model id ",
-             "(cerebro picks no default)", call. = FALSE)
+        stop("cerebelo: `model` is required; pass an LLM model id ",
+             "(cerebelo picks no default)", call. = FALSE)
     }
-    stop("cerebro: ", what, " needs a `model`; set an LLM model id ",
-         "(cerebro picks no default)", call. = FALSE)
+    stop("cerebelo: ", what, " needs a `model`; set an LLM model id ",
+         "(cerebelo picks no default)", call. = FALSE)
 }

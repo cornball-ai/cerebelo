@@ -1,4 +1,4 @@
-# The lifecycle schema's event types. cerebro writes them here, corteza
+# The lifecycle schema's event types. cerebelo writes them here, corteza
 # reads them at /clear and on a thread reply, and a client that groups
 # rooms by state reads them too; the names are the contract.
 .LIFECYCLE_TYPE <- "ai.cornball.lifecycle"
@@ -97,7 +97,7 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
     segs <- .segment_records(client)
     undated <- vapply(segs, function(s) is.na(s$last_active), logical(1))
     for (s in segs[undated]) {
-        message("cerebro: segment ", s$id, " has no datable activity; skipping")
+        message("cerebelo: segment ", s$id, " has no datable activity; skipping")
     }
     skipped <- vapply(segs[undated], function(s) s$id, character(1))
     segs <- segs[!undated]
@@ -107,7 +107,7 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
                      max_segments = max_segments,
                      fold_min_days = fold_min_days)
     if (!length(ids)) {
-        message("cerebro: no segments due to fold (", length(segs), " active)")
+        message("cerebelo: no segments due to fold (", length(segs), " active)")
         return(invisible(list(folded = list(), skipped = skipped)))
     }
 
@@ -168,7 +168,7 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
         if (isTRUE(d$create)) {
             note <- paste0("New topic room: ", t)
             if (is.null(room)) {
-                message("cerebro: ", note)
+                message("cerebelo: ", note)
             } else {
                 matrix_send(note, room = room, dry_run = dry_run,
                             instance_dir = instance_dir, client = client)
@@ -181,7 +181,7 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
         s <- to_fold[[i]]
         t <- decisions[[i]]$topic
         if (isTRUE(dry_run)) {
-            message("cerebro: would fold ", s$id, " (idle since ",
+            message("cerebelo: would fold ", s$id, " (idle since ",
                     format(s$last_active), ") into ", t)
             folded[[length(folded) + 1L]] <- list(id = s$id, topic = t)
             next
@@ -190,7 +190,7 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
             .fold_one(client, s, topic_rids[[t]], t)
             TRUE
         }, error = function(e) {
-            message("cerebro: fold of ", s$id, " failed: ", conditionMessage(e))
+            message("cerebelo: fold of ", s$id, " failed: ", conditionMessage(e))
             FALSE
         })
         if (ok) {
@@ -505,7 +505,7 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
     }
     tryCatch(.ensure_topic_state(client, room_id, nm),
              error = function(e) {
-        message("cerebro: could not stamp ", room_id, " as a topic room: ",
+        message("cerebelo: could not stamp ", room_id, " as a topic room: ",
                 conditionMessage(e))
         invisible(FALSE)
     })

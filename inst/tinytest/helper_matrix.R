@@ -1,6 +1,6 @@
 # A Matrix-shaped chat.api client with no homeserver behind it.
 #
-# chat.api's Matrix adapter takes a testing seam for every verb cerebro
+# chat.api's Matrix adapter takes a testing seam for every verb cerebelo
 # calls (.channels, .info, .get_state, .state, .create, .history,
 # .send), so a test replaces exactly the calls that would reach a
 # server and keeps the adapter's own behaviour -- the oldest-first

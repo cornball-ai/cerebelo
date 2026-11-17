@@ -1,9 +1,9 @@
 library(tinytest)
 
-resolve <- getFromNamespace(".resolve_path", "cerebro")
-relative <- getFromNamespace(".thread_relative", "cerebro")
+resolve <- getFromNamespace(".resolve_path", "cerebelo")
+relative <- getFromNamespace(".thread_relative", "cerebelo")
 
-root <- tempfile("cerebro-paths-")
+root <- tempfile("cerebelo-paths-")
 dir.create(root)
 real <- normalizePath(root, winslash = "/")
 
@@ -39,7 +39,7 @@ if (isTRUE(suppressWarnings(file.symlink(real, link)))) {
 }
 
 # A path outside the vault is still refused.
-other <- tempfile("cerebro-other-")
+other <- tempfile("cerebelo-other-")
 expect_error(relative(file.path(other, "x.md"), root),
              "outside the target vault")
 

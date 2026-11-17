@@ -1,6 +1,6 @@
 library(tinytest)
 
-substance <- cerebro:::.thread_session_substance
+substance <- cerebelo:::.thread_session_substance
 
 # A one-line ping is one user turn, few characters. Assistant text does
 # not count toward either measure.
@@ -76,7 +76,7 @@ local({
         msgs <- character()
         invisible(utils::capture.output(
             got <- withCallingHandlers(
-                cerebro::sync_general_conversation_threads(
+                cerebelo::sync_general_conversation_threads(
                     vault = v, instance_dir = inst,
                     matrix_roots = file.path(inst, "vault", "raw", "matrix"),
                     days = 30L, dry_run = TRUE, generate_fn = stub, ...),

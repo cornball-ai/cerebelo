@@ -1,7 +1,7 @@
 % tinyrox says don't edit this manually, but it can't stop you!
 \name{status}
 \alias{status}
-\title{Check which cerebro packages are installed}
+\title{Check which cerebelo packages are installed}
 \usage{
 status()
 }
@@ -9,8 +9,8 @@ status()
 A data.frame with columns: package, installed, version.
 }
 \description{
-Check which cerebro packages are installed
+Check which cerebelo packages are installed
 }
 \examples{
-cerebro::status()
+cerebelo::status()
 }

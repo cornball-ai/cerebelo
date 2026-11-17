@@ -21,18 +21,18 @@ lines <- c(
 )
 
 # ---- .reconcile_section_range ----
-rng <- cerebro:::.reconcile_section_range(lines, "Tuesday")
+rng <- cerebelo:::.reconcile_section_range(lines, "Tuesday")
 expect_equal(rng, c(8L, 12L))
 
-expect_null(cerebro:::.reconcile_section_range(lines, "Saturday"))
+expect_null(cerebelo:::.reconcile_section_range(lines, "Saturday"))
 
 # empty section: range start > end signalled as c(start, start-1)
 empty <- c("## Friday", "## Monday", "- [ ] x")
-er <- cerebro:::.reconcile_section_range(empty, "Friday")
+er <- cerebelo:::.reconcile_section_range(empty, "Friday")
 expect_true(er[2L] < er[1L])
 
 # ---- .reconcile_candidates ----
-cand <- cerebro:::.reconcile_candidates(lines, rng)
+cand <- cerebelo:::.reconcile_candidates(lines, rng)
 # only the two open items ([ ] and [/]); blocked and done excluded
 expect_equal(cand$line, c(8L, 9L))
 expect_equal(cand$status, c(" ", "/"))
@@ -44,22 +44,22 @@ reply <- paste0(
     '{"done":[8],"unclear":[{"line":9,"why":"no matching commit"}],',
     '"offlist":["fixed CI flake"]}\n',
     "Let me know if that's off.")
-ops <- cerebro:::.reconcile_parse_ops(reply, valid_lines = c(8L, 9L))
+ops <- cerebelo:::.reconcile_parse_ops(reply, valid_lines = c(8L, 9L))
 expect_equal(ops$done, 8L)
 expect_equal(ops$unclear[[1]]$line, 9L)
 expect_equal(ops$offlist, "fixed CI flake")
 
 # invalid line numbers are dropped against valid_lines
-ops2 <- cerebro:::.reconcile_parse_ops('{"done":[8,99],"offlist":[]}',
+ops2 <- cerebelo:::.reconcile_parse_ops('{"done":[8,99],"offlist":[]}',
                                        valid_lines = c(8L, 9L))
 expect_equal(ops2$done, 8L)
 
 # a reply with no JSON yields NULL (caller leaves the list untouched)
-expect_null(cerebro:::.reconcile_parse_ops("no json here", c(8L, 9L)))
+expect_null(cerebelo:::.reconcile_parse_ops("no json here", c(8L, 9L)))
 
 # ---- .reconcile_apply ----
 ops3 <- list(done = 8L, unclear = list(), offlist = "fixed CI flake")
-applied <- cerebro:::.reconcile_apply(lines, rng, cand, ops3)
+applied <- cerebelo:::.reconcile_apply(lines, rng, cand, ops3)
 expect_true(applied$changed)
 # line 8 flipped to done
 expect_equal(applied$lines[8], "- [x] corteza matrix work")
@@ -72,12 +72,12 @@ expect_true(any(grepl("fixed CI flake", applied$lines)))
 
 # a done id that isn't a candidate (e.g. the blocked line 10) is ignored
 ops4 <- list(done = c(8L, 10L), unclear = list(), offlist = character())
-applied2 <- cerebro:::.reconcile_apply(lines, rng, cand, ops4)
+applied2 <- cerebelo:::.reconcile_apply(lines, rng, cand, ops4)
 expect_equal(applied2$lines[10], "- [!] blocked on review")
 expect_equal(applied2$done_lines, 8L)
 
 # ---- .reconcile_summary ----
-sm <- cerebro:::.reconcile_summary(applied, cand, ops3, "Tuesday")
+sm <- cerebelo:::.reconcile_summary(applied, cand, ops3, "Tuesday")
 expect_true(grepl("Marked done", sm))
 expect_true(grepl("corteza matrix work", sm))
 expect_true(grepl("Off-list", sm))

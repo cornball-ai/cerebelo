@@ -5,11 +5,11 @@ library(tinytest)
 # as versionCheck to each import directive, while a `pkg::` call loads
 # the namespace with no check at all. Every Imports entry that carries
 # a floor therefore has an import directive, so a stale copy earlier on
-# the library path fails at loadNamespace("cerebro") instead of being
+# the library path fails at loadNamespace("cerebelo") instead of being
 # used. Depends floors are checked at load regardless.
-desc <- read.dcf(system.file("DESCRIPTION", package = "cerebro"), "Imports")
+desc <- read.dcf(system.file("DESCRIPTION", package = "cerebelo"), "Imports")
 entries <- trimws(strsplit(desc[1L, "Imports"], ",")[[1L]])
 floored <- sub("\\s*\\(.*$", "", entries[grepl("(", entries, fixed = TRUE)])
 expect_true(length(floored) > 0L)
-imported <- names(getNamespaceImports("cerebro"))
+imported <- names(getNamespaceImports("cerebelo"))
 for (p in floored) expect_true(p %in% imported, info = p)

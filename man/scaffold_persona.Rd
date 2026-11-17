@@ -1,7 +1,7 @@
 % tinyrox says don't edit this manually, but it can't stop you!
 \name{scaffold_persona}
 \alias{scaffold_persona}
-\title{Scaffold a cerebro persona repository}
+\title{Scaffold a cerebelo persona repository}
 \usage{
 scaffold_persona(
   name,
@@ -39,10 +39,10 @@ the current templates.}
 A data frame with one row per managed path and its action, invisibly.
 }
 \description{
-Creates the generic structural files and directories used by a cerebro
+Creates the generic structural files and directories used by a cerebelo
 persona. Existing files are preserved by default: files that differ from
 the current template are reported as conflicts unless \code{overwrite} is
-true. The managed cerebro block in \code{.gitignore} is updated in place
+true. The managed cerebelo block in \code{.gitignore} is updated in place
 while preserving all content outside that block.
 }
 \details{

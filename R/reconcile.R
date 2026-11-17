@@ -36,7 +36,7 @@ reconcile_todo <- function(name = "reconcile", root, room = NULL,
         path <- .reconcile_daily_file(root, date)
         if (is.null(path)) {
             msg <- "reconcile: no current daily todo file found; nothing to do."
-            message("cerebro: ", msg)
+            message("cerebelo: ", msg)
             return(invisible(NULL))
         }
         lines <- readLines(path, warn = FALSE)
@@ -45,7 +45,7 @@ reconcile_todo <- function(name = "reconcile", root, room = NULL,
             msg <- sprintf(
                            "reconcile: no '## %s' section in %s; nothing to do.",
                            day_name, basename(path))
-            message("cerebro: ", msg)
+            message("cerebelo: ", msg)
             return(invisible(NULL))
         }
 
@@ -53,7 +53,7 @@ reconcile_todo <- function(name = "reconcile", root, room = NULL,
         if (!nrow(cand)) {
             msg <- sprintf("reconcile: no open items in today's (%s) list.",
                            day_name)
-            message("cerebro: ", msg)
+            message("cerebelo: ", msg)
             if (!isTRUE(dry_run) && !is.null(room)) {
                 matrix_send(msg, room = room, instance_dir = instance_dir)
             }
@@ -70,7 +70,7 @@ reconcile_todo <- function(name = "reconcile", root, room = NULL,
             msg <- paste0(
                           "reconcile: could not read a clear answer from the model; ",
                           "left today's list untouched.")
-            message("cerebro: ", msg)
+            message("cerebelo: ", msg)
             if (!isTRUE(dry_run) && !is.null(room)) {
                 matrix_send(msg, room = room, instance_dir = instance_dir)
             }
@@ -90,7 +90,7 @@ reconcile_todo <- function(name = "reconcile", root, room = NULL,
 
         if (applied$changed) {
             writeLines(applied$lines, path)
-            message(sprintf("cerebro: reconcile wrote %d edits to %s",
+            message(sprintf("cerebelo: reconcile wrote %d edits to %s",
                             length(applied$done_lines) + length(ops$offlist),
                             basename(path)))
         }
@@ -220,7 +220,7 @@ reconcile_todo <- function(name = "reconcile", root, room = NULL,
     blocks <- character()
     for (spec in sources) {
         out <- tryCatch(.run_source(spec, mode, ctx), error = function(e) {
-            message(sprintf("cerebro: reconcile source %s error: %s",
+            message(sprintf("cerebelo: reconcile source %s error: %s",
                             spec$type, conditionMessage(e)))
             NULL
         })
@@ -272,7 +272,7 @@ reconcile_todo <- function(name = "reconcile", root, room = NULL,
     }
     resp <- tryCatch(do.call(llm.api::chat, chat_args),
                      error = function(e) {
-        message("cerebro: reconcile chat error: ", conditionMessage(e))
+        message("cerebelo: reconcile chat error: ", conditionMessage(e))
         NULL
     })
     if (is.null(resp)) {

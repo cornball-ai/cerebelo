@@ -5,7 +5,7 @@ if (!requireNamespace("mx.client", quietly = TRUE)) {
 }
 source("helper_matrix.R")
 
-root <- file.path(tempdir(), paste0("cerebro-transport-", Sys.getpid(), "-",
+root <- file.path(tempdir(), paste0("cerebelo-transport-", Sys.getpid(), "-",
                                     sample.int(1e6, 1L)))
 dir.create(root, recursive = TRUE)
 
@@ -43,15 +43,15 @@ cl <- matrix_client(
 
 # Pre-seed the instance room cache under the legacy key so the rename
 # re-keys it.
-write_state <- getFromNamespace("write_instance_state", "cerebro")
-read_state <- getFromNamespace("read_instance_state", "cerebro")
+write_state <- getFromNamespace("write_instance_state", "cerebelo")
+read_state <- getFromNamespace("read_instance_state", "cerebelo")
 state <- read_state(root)
 state$matrix_rooms <- stats::setNames(list("!old:test"), legacy)
 write_state(state, root)
 
 # Dry run reports the rename without touching the server.
 expect_message(
-               cerebro::ensure_matrix_room("~/pensar", client = cl,
+               cerebelo::ensure_matrix_room("~/pensar", client = cl,
         dry_run = TRUE, legacy_name = legacy),
                pattern = "would rename Matrix room"
 )
@@ -59,7 +59,7 @@ expect_equal(length(fake$renames), 0L)
 
 # Live path: legacy hit is renamed in place, cache is re-keyed.
 rid <- suppressMessages(
-    cerebro::ensure_matrix_room("~/pensar", topic = "~/pensar | thread",
+    cerebelo::ensure_matrix_room("~/pensar", topic = "~/pensar | thread",
         client = cl, instance_dir = root,
         legacy_name = legacy)
 )
@@ -75,7 +75,7 @@ expect_false(legacy %in% names(rooms_cache))
 # Idempotent reuse: the new name now matches directly, no second rename,
 # no duplicate room, no duplicate cache key.
 rid_again <- suppressMessages(
-    cerebro::ensure_matrix_room("~/pensar", topic = "~/pensar | thread",
+    cerebelo::ensure_matrix_room("~/pensar", topic = "~/pensar | thread",
         client = cl, instance_dir = root,
         legacy_name = legacy)
 )
@@ -89,12 +89,12 @@ expect_equal(sum(names(read_state(root)$matrix_rooms) == "~/pensar"), 1L)
 # a duplicate room when the requested name is clean.
 fake$rooms[["!trail:test"]] <- "Cooking "
 rid_trailing <- suppressMessages(
-    cerebro::ensure_matrix_room("Cooking", client = cl, instance_dir = root)
+    cerebelo::ensure_matrix_room("Cooking", client = cl, instance_dir = root)
 )
 expect_equal(rid_trailing, "!trail:test")
 expect_equal(length(fake$created), 0L)
 expect_equal(read_state(root)$matrix_rooms[["Cooking"]], "!trail:test")
-expect_equal(cerebro::resolve_room("Cooking ", instance_dir = root,
+expect_equal(cerebelo::resolve_room("Cooking ", instance_dir = root,
                                   client = cl), "!trail:test")
 
 # The cache is authoritative once populated; otherwise an existing duplicate
@@ -103,7 +103,7 @@ state <- read_state(root)
 state$matrix_rooms$Cached <- "!cached:test"
 write_state(state, root)
 rid_cached <- suppressMessages(
-    cerebro::ensure_matrix_room("Cached", client = cl, instance_dir = root)
+    cerebelo::ensure_matrix_room("Cached", client = cl, instance_dir = root)
 )
 expect_equal(rid_cached, "!cached:test")
 expect_equal(length(fake$created), 0L)
@@ -111,7 +111,7 @@ expect_equal(length(fake$created), 0L)
 # Create path: no match under either name creates the room with the new
 # title.
 rid_new <- suppressMessages(
-    cerebro::ensure_matrix_room("~/newrepo", client = cl, instance_dir = root,
+    cerebelo::ensure_matrix_room("~/newrepo", client = cl, instance_dir = root,
         legacy_name = paste("opsbot","newrepo", sep = " · "))
 )
 expect_equal(length(fake$created), 1L)
@@ -119,6 +119,6 @@ expect_equal(fake$created[[1L]], "~/newrepo")
 expect_equal(read_state(root)$matrix_rooms[["~/newrepo"]], rid_new)
 
 # A literal id needs no transport and no config at all.
-expect_equal(cerebro::resolve_room("!literal:test"), "!literal:test")
+expect_equal(cerebelo::resolve_room("!literal:test"), "!literal:test")
 
 unlink(root, recursive = TRUE)

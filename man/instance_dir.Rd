@@ -12,7 +12,7 @@ instance_dir(instance_dir = NULL)
 Normalized absolute path.
 }
 \description{
-Order: \code{instance_dir} arg, \code{getOption("cerebro.instance_dir")},
+Order: \code{instance_dir} arg, \code{getOption("cerebelo.instance_dir")},
 env \code{CEREBRO_INSTANCE_DIR}. Errors if none of those resolve to an
 existing directory.
 }

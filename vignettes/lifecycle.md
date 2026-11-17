@@ -17,10 +17,10 @@ they go quiet, and continues them when someone replies later.
 Three parties implement it against this page:
 
 - **corteza** runs the bot. At `/clear` it archives the conversation
-  and, through a hook cerebro supplies, opens a segment room. When a
-  message arrives in a thread, it asks cerebro which archived
+  and, through a hook cerebelo supplies, opens a segment room. When a
+  message arrives in a thread, it asks cerebelo which archived
   conversation the thread continues and seeds the session from it.
-- **cerebro** owns the policy: when a segment folds, where it files,
+- **cerebelo** owns the policy: when a segment folds, where it files,
   and the state events that record all of it. The fold runs as the
   `lifecycle_sweep` routine (`sweep_segments()`).
 - **The client** renders rooms by their lifecycle state. Nothing here
@@ -57,9 +57,9 @@ State key `""`. Absence means the room is an ordinary room.
 
 | `state` | Written by | Content |
 |---|---|---|
-| `segment` | cerebro's `segment_open()`, when corteza clears a conversation | `segment_of` (home room id), `vault` (archive path, relative to the vault root; absent when nothing was archived), `since` (ISO 8601 UTC) |
-| `folded` | cerebro at fold | the segment fields unchanged, plus `folded_into` (`room`: topic room id, `thread`: root event id) and `folded_at` (ISO 8601 UTC). `since` stays the segment's own timestamp. |
-| `topic` | cerebro when it creates a topic room | `topic` (the name at creation). The room's current display name is the label; the stored name is provenance and the fallback when the name cannot be read. Renaming the room is how a topic is corrected. |
+| `segment` | cerebelo's `segment_open()`, when corteza clears a conversation | `segment_of` (home room id), `vault` (archive path, relative to the vault root; absent when nothing was archived), `since` (ISO 8601 UTC) |
+| `folded` | cerebelo at fold | the segment fields unchanged, plus `folded_into` (`room`: topic room id, `thread`: root event id) and `folded_at` (ISO 8601 UTC). `since` stays the segment's own timestamp. |
+| `topic` | cerebelo when it creates a topic room | `topic` (the name at creation). The room's current display name is the label; the stored name is provenance and the fallback when the name cannot be read. Renaming the room is how a topic is corrected. |
 | `parked` | reserved | `since`, `reason`. A generic demotion for rooms that are not segments. Nothing writes it yet. |
 
 A folded segment room also gets `m.room.tombstone` with

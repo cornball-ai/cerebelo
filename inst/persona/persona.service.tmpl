@@ -1,5 +1,5 @@
 [Unit]
-Description={{name}} cerebro instance
+Description={{name}} cerebelo instance
 After=network-online.target
 Wants=network-online.target
 
@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 Environment="CEREBRO_INSTANCE_DIR={{instance_dir_systemd}}"
 Environment="HACER_REPO={{todo_dir_systemd}}"
-ExecStart=/usr/bin/r -e "cerebro::run(Sys.getenv('CEREBRO_INSTANCE_DIR'))"
+ExecStart=/usr/bin/r -e "cerebelo::run(Sys.getenv('CEREBRO_INSTANCE_DIR'))"
 Restart=always
 RestartSec=5
 

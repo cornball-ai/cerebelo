@@ -9,9 +9,9 @@ library(tinytest)
 # an absent creds file so it fails before any homeserver call.
 
 source("helper_matrix.R")
-apply_avatar <- cerebro:::.apply_matrix_avatar
+apply_avatar <- cerebelo:::.apply_matrix_avatar
 
-dir <- tempfile("cerebro-avatar-")
+dir <- tempfile("cerebelo-avatar-")
 dir.create(dir)
 
 old_cfg <- Sys.getenv("CORTEZA_MATRIX_CONFIG", unset = NA)
@@ -31,20 +31,20 @@ expect_false(apply_avatar(file.path(dir, "nope.png"), dir))
 f <- file.path(dir, "face.png")
 writeBin(as.raw(c(1, 2, 3, 4)), f)
 expect_false(apply_avatar(f, dir))
-expect_null(cerebro::read_instance_state(dir)$matrix_avatar_md5)
+expect_null(cerebelo::read_instance_state(dir)$matrix_avatar_md5)
 
 # --- Idempotent skip: a stamped, unchanged file is not re-sent. The skip
 # returns before reading creds, so the absent config is never touched.
 md5 <- unname(tools::md5sum(f))
-cerebro::update_instance_state(matrix_avatar_md5 = md5, instance_dir = dir)
+cerebelo::update_instance_state(matrix_avatar_md5 = md5, instance_dir = dir)
 expect_false(apply_avatar(f, dir))
-expect_identical(cerebro::read_instance_state(dir)$matrix_avatar_md5, md5)
+expect_identical(cerebelo::read_instance_state(dir)$matrix_avatar_md5, md5)
 
 # --- A changed file is no longer covered by the stamp, so it is tried
 # again (and fails cleanly here), leaving the old stamp untouched.
 writeBin(as.raw(c(5, 6, 7, 8)), f)
 expect_false(apply_avatar(f, dir))
-expect_identical(cerebro::read_instance_state(dir)$matrix_avatar_md5, md5)
+expect_identical(cerebelo::read_instance_state(dir)$matrix_avatar_md5, md5)
 
 # --- The upload itself, with a client supplied: one identity call
 # carrying the file, then the md5 stamp; the same file again is skipped
@@ -59,7 +59,7 @@ if (requireNamespace("mx.client", quietly = TRUE)) local({
     writeBin(as.raw(c(9, 9, 9)), g)
     expect_true(suppressMessages(apply_avatar(g, dir, client = cl)))
     expect_identical(seen, list(g))
-    expect_identical(cerebro::read_instance_state(dir)$matrix_avatar_md5,
+    expect_identical(cerebelo::read_instance_state(dir)$matrix_avatar_md5,
                      unname(tools::md5sum(g)))
     expect_false(apply_avatar(g, dir, client = cl))
     expect_identical(length(seen), 1L)

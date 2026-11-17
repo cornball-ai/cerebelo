@@ -50,11 +50,11 @@ briefing <- function(name, room = NULL, sources = list(), system_prompt,
                             "[briefing %s] empty response from %s/%s \u2014 check logs",
                             name, provider %||% "?", model %||% "?"
             )
-            message("cerebro: ", warn)
+            message("cerebelo: ", warn)
             matrix_send(warn, room = room, instance_dir = instance_dir)
         } else {
             matrix_send(reply, room = room, instance_dir = instance_dir)
-            message(sprintf("cerebro: briefing %s sent", name))
+            message(sprintf("cerebelo: briefing %s sent", name))
         }
         invisible(reply)
     }
@@ -88,7 +88,7 @@ prepare_briefing <- function(name, sources = list(), system_prompt,
     draft <- state$prepared_briefings[[name]]
     today <- as.character(date)
     if (!isTRUE(force) && identical(draft$date, today)) {
-        message("cerebro: prepared briefing ", name, " already exists for ",
+        message("cerebelo: prepared briefing ", name, " already exists for ",
                 today, "; skipping")
         return(invisible(NULL))
     }
@@ -106,7 +106,7 @@ prepare_briefing <- function(name, sources = list(), system_prompt,
                                 date = date
     )
     if (!nzchar(trimws(reply %||% ""))) {
-        stop("cerebro: prepared briefing was empty", call. = FALSE)
+        stop("cerebelo: prepared briefing was empty", call. = FALSE)
     }
     if (isTRUE(dry_run)) {
         cat("=== PREPARED BRIEFING ", name, " (dry-run) ===\n",
@@ -124,7 +124,7 @@ prepare_briefing <- function(name, sources = list(), system_prompt,
         text = reply
     )
     write_instance_state(state, instance_dir)
-    message("cerebro: prepared briefing ", name, " for ", today)
+    message("cerebelo: prepared briefing ", name, " for ", today)
     invisible(reply)
 }
 
@@ -150,7 +150,7 @@ send_prepared_briefing <- function(name, room = NULL, force = FALSE,
     today <- as.character(date)
     if (is.null(draft) || !identical(draft$date, today) ||
         !nzchar(trimws(draft$text %||% ""))) {
-        message("cerebro: no prepared briefing ", name, " for ", today,
+        message("cerebelo: no prepared briefing ", name, " for ", today,
                 "; not sending")
         return(invisible(NULL))
     }
@@ -159,7 +159,7 @@ send_prepared_briefing <- function(name, room = NULL, force = FALSE,
         matrix_send(draft$text, room = room, dry_run = dry_run,
                     instance_dir = instance_dir)
         if (!isTRUE(dry_run)) {
-            message("cerebro: prepared briefing ", name, " sent")
+            message("cerebelo: prepared briefing ", name, " sent")
         }
         invisible(draft$text)
     }
@@ -219,7 +219,7 @@ send_prepared_briefing <- function(name, room = NULL, force = FALSE,
     key <- r$briefing %||% r$name
     bcfg <- briefings[[key]]
     if (is.null(bcfg)) {
-        message("cerebro: routine ", r$name,
+        message("cerebelo: routine ", r$name,
                 " references unknown briefing '", key, "'; skipping")
         return(NULL)
     }
@@ -247,7 +247,7 @@ send_prepared_briefing <- function(name, room = NULL, force = FALSE,
                                mode_fn, model, provider, max_tokens,
                                instance_dir, date) {
     mode <- mode_fn(date)
-    message(sprintf("cerebro: briefing %s mode=%s date=%s", name, mode,
+    message(sprintf("cerebelo: briefing %s mode=%s date=%s", name, mode,
                     as.character(date)))
 
     ctx <- new.env(parent = emptyenv())
@@ -262,7 +262,7 @@ send_prepared_briefing <- function(name, room = NULL, force = FALSE,
     for (spec in sources) {
         out <- tryCatch(.run_source(spec, mode, ctx),
                         error = function(e) {
-            message(sprintf("cerebro: source %s error: %s",
+            message(sprintf("cerebelo: source %s error: %s",
                             spec$type, conditionMessage(e)))
             NULL
         })

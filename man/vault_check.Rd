@@ -36,7 +36,7 @@ has findings or a lint error.}
 \item{instance_dir}{Character or NULL.}
 }
 \value{
-A list with class \code{cerebro_vault_check}.
+A list with class \code{cerebelo_vault_check}.
 }
 \description{
 Runs \code{pensar::lint()} for each configured vault, summarizes

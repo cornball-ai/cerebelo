@@ -15,7 +15,7 @@ cfg <- list(segment_rooms = "home")
 # ---- The segment room ----
 local({
     lo <- chat.api::chat_loopback()
-    seg <- cerebro::segment_open(lo, cfg, "home", "Fold formula (2026-08-19)",
+    seg <- cerebelo::segment_open(lo, cfg, "home", "Fold formula (2026-08-19)",
                                  "raw/matrix/seg.md")
     expect_identical(seg$id, "Fold formula (2026-08-19)")
     expect_identical(seg$name, "Fold formula (2026-08-19)")
@@ -37,7 +37,7 @@ local({
 # No archive pointer: the state event and summary simply omit it.
 local({
     lo <- chat.api::chat_loopback()
-    seg <- cerebro::segment_open(lo, cfg, "home", "Untitled (x)", NULL)
+    seg <- cerebelo::segment_open(lo, cfg, "home", "Untitled (x)", NULL)
     st <- chat.api::chat_get_state(lo, seg$id, "ai.cornball.lifecycle")
     expect_false("vault" %in% names(st))
     expect_false(grepl("Archived transcript",
@@ -52,9 +52,9 @@ local({
 local({
     lo <- chat.api::chat_loopback()
     before <- chat.api::chat_channels(lo)
-    expect_null(cerebro::segment_open(lo, cfg, "other", "T (d)", NULL))
-    expect_null(cerebro::segment_open(lo, list(), "home", "T (d)", NULL))
-    expect_null(cerebro::segment_open(lo, list(segment_rooms = NULL), "home",
+    expect_null(cerebelo::segment_open(lo, cfg, "other", "T (d)", NULL))
+    expect_null(cerebelo::segment_open(lo, list(), "home", "T (d)", NULL))
+    expect_null(cerebelo::segment_open(lo, list(segment_rooms = NULL), "home",
                                       "T (d)", NULL))
     expect_identical(chat.api::chat_channels(lo), before)
     expect_identical(length(chat.api::chat_poll(lo)$messages), 0L)
@@ -66,7 +66,7 @@ local({
     irc <- structure(list(env = new.env(parent = emptyenv()), nick = "bot"),
                      class = c("chat_irc", "chat_client"))
     expect_false(isTRUE(chat.api::chat_capabilities(irc)$set_state))
-    expect_message(res <- cerebro::segment_open(irc, list(segment_rooms = "#lab"),
+    expect_message(res <- cerebelo::segment_open(irc, list(segment_rooms = "#lab"),
                                                 "#lab", "t", NULL),
                    "no segment")
     expect_null(res)
@@ -77,22 +77,22 @@ local({
     lo <- chat.api::chat_loopback()
     # A thread nobody folded into is not a fold, and answers NULL
     # rather than erroring.
-    expect_null(cerebro::fold_lookup(lo, "topic", "$root"))
-    expect_null(cerebro::fold_lookup(lo, "topic", NULL))
-    expect_null(cerebro::fold_lookup(lo, "topic", ""))
+    expect_null(cerebelo::fold_lookup(lo, "topic", "$root"))
+    expect_null(cerebelo::fold_lookup(lo, "topic", NULL))
+    expect_null(cerebelo::fold_lookup(lo, "topic", ""))
     chat.api::chat_set_state(lo, "topic", "ai.cornball.fold",
                              list(segment = "!seg:ex",
                                   vault = "raw/matrix/seg.md"),
                              state_key = "$root")
-    got <- cerebro::fold_lookup(lo, "topic", "$root")
+    got <- cerebelo::fold_lookup(lo, "topic", "$root")
     expect_identical(got, list(segment = "!seg:ex", vault = "raw/matrix/seg.md"))
     # Keyed by the root: a different thread in the same room is a
     # different fold, and an unindexed one is not a fold at all.
-    expect_null(cerebro::fold_lookup(lo, "topic", "$other"))
+    expect_null(cerebelo::fold_lookup(lo, "topic", "$other"))
     # An index without a usable pointer is no archive.
     chat.api::chat_set_state(lo, "topic", "ai.cornball.fold",
                              list(segment = "!seg:ex"), state_key = "$bare")
-    expect_null(cerebro::fold_lookup(lo, "topic", "$bare"))
+    expect_null(cerebelo::fold_lookup(lo, "topic", "$bare"))
 })
 
 # A transport without durable state has no index to read: NULL, so a
@@ -100,7 +100,7 @@ local({
 local({
     irc <- structure(list(env = new.env(parent = emptyenv()), nick = "bot"),
                      class = c("chat_irc", "chat_client"))
-    expect_null(cerebro::fold_lookup(irc, "#lab", "$root"))
+    expect_null(cerebelo::fold_lookup(irc, "#lab", "$root"))
 })
 
 # ---- The fold index is what the sweep writes ----
@@ -128,8 +128,8 @@ if (requireNamespace("mx.client", quietly = TRUE)) local({
                 state = list(state = "segment", segment_of = "!home:ex",
                              vault = "raw/matrix/seg.md",
                              since = "2026-08-19T10:00:00Z"))
-    root <- cerebro:::.fold_one(cl, seg, "!topic:ex", "Cooking")
+    root <- cerebelo:::.fold_one(cl, seg, "!topic:ex", "Cooking")
     expect_identical(root, "$root1")
-    expect_identical(cerebro::fold_lookup(cl, "!topic:ex", root),
+    expect_identical(cerebelo::fold_lookup(cl, "!topic:ex", root),
                      list(segment = "!seg:ex", vault = "raw/matrix/seg.md"))
 })

@@ -15,7 +15,7 @@
 #'   has findings or a lint error.
 #' @param dry_run Logical. Print Matrix sends instead of sending.
 #' @param instance_dir Character or NULL.
-#' @return A list with class \code{cerebro_vault_check}.
+#' @return A list with class \code{cerebelo_vault_check}.
 #' @export
 vault_check <- function(vaults = NULL, room = NULL,
                         notify = c("findings", "always", "never"),
@@ -42,7 +42,7 @@ vault_check <- function(vaults = NULL, room = NULL,
                    total_findings = total,
                    errors = errors,
                    report = report)
-    class(result) <- "cerebro_vault_check"
+    class(result) <- "cerebelo_vault_check"
 
     should_notify <- switch(notify,
                             always = TRUE,
@@ -62,7 +62,7 @@ vault_check <- function(vaults = NULL, room = NULL,
 }
 
 #' @export
-print.cerebro_vault_check <- function(x, ...) {
+print.cerebelo_vault_check <- function(x, ...) {
     cat(x$report, "\n", sep = "")
     invisible(x)
 }

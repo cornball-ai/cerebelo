@@ -1,9 +1,9 @@
-#' Scaffold a cerebro persona repository
+#' Scaffold a cerebelo persona repository
 #'
-#' Creates the generic structural files and directories used by a cerebro
+#' Creates the generic structural files and directories used by a cerebelo
 #' persona. Existing files are preserved by default: files that differ from
 #' the current template are reported as conflicts unless \code{overwrite} is
-#' true. The managed cerebro block in \code{.gitignore} is updated in place
+#' true. The managed cerebelo block in \code{.gitignore} is updated in place
 #' while preserving all content outside that block.
 #'
 #' The generated config is intentionally inactive: Matrix is disabled and no
@@ -113,7 +113,7 @@ scaffold_persona <- function(name, instance_dir = file.path("~", name),
     conflicts <- report$action == "conflict"
     if (any(conflicts)) {
         message(
-                "cerebro: preserved ", sum(conflicts),
+                "cerebelo: preserved ", sum(conflicts),
                 " existing scaffold file(s) with local changes; ",
                 "set overwrite = TRUE to replace them"
         )
@@ -138,13 +138,13 @@ scaffold_persona <- function(name, instance_dir = file.path("~", name),
 }
 
 .scaffold_render <- function(template, values) {
-    root <- system.file("persona", package = "cerebro")
+    root <- system.file("persona", package = "cerebelo")
     if (!nzchar(root)) {
-        stop("cerebro persona templates are not installed", call. = FALSE)
+        stop("cerebelo persona templates are not installed", call. = FALSE)
     }
     path <- file.path(root, template)
     if (!file.exists(path)) {
-        stop("missing cerebro persona template: ", template, call. = FALSE)
+        stop("missing cerebelo persona template: ", template, call. = FALSE)
     }
     out <- readLines(path, warn = FALSE, encoding = "UTF-8")
     for (key in names(values)) {
@@ -256,7 +256,7 @@ scaffold_persona <- function(name, instance_dir = file.path("~", name),
 
 .scaffold_write <- function(path, content) {
     dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-    tmp <- tempfile(".cerebro-", tmpdir = dirname(path))
+    tmp <- tempfile(".cerebelo-", tmpdir = dirname(path))
     on.exit(unlink(tmp), add = TRUE)
     writeLines(enc2utf8(content), tmp, useBytes = TRUE)
     if (!file.copy(tmp, path, overwrite = TRUE, copy.mode = TRUE)) {
@@ -271,15 +271,15 @@ scaffold_persona <- function(name, instance_dir = file.path("~", name),
     } else {
         character()
     }
-    begin <- "# >>> cerebro scaffold >>>"
-    end <- "# <<< cerebro scaffold <<<"
+    begin <- "# >>> cerebelo scaffold >>>"
+    end <- "# <<< cerebelo scaffold <<<"
     starts <- which(current == begin)
     finishes <- which(current == end)
     has_block <- length(starts) > 0L || length(finishes) > 0L
     valid_block <- length(starts) == 1L && length(finishes) == 1L &&
     finishes[[1L]] >= starts[[1L]]
     if (has_block && !valid_block) {
-        stop("malformed cerebro scaffold block in ", path, call. = FALSE)
+        stop("malformed cerebelo scaffold block in ", path, call. = FALSE)
     }
     if (valid_block) {
         start <- starts[[1L]]

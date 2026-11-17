@@ -31,7 +31,7 @@ default location.}
 \item{markdown}{Logical. If TRUE, the body is rendered as markdown.}
 
 \item{msgtype}{Character. Matrix msgtype. Defaults to \code{"m.notice"}:
-everything cerebro sends through this wrapper is proactive persona
+everything cerebelo sends through this wrapper is proactive persona
 traffic (briefings, sync summaries, reconcile reports), which clients
 render without a notification ping. Pass \code{"m.text"} for a message
 that should notify.}

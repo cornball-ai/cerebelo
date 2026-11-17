@@ -1,4 +1,4 @@
-# Schedule grammar for cerebro::add_routine().
+# Schedule grammar for cerebelo::add_routine().
 #
 # Supported forms:
 #   "hourly"           -- every hour at :00

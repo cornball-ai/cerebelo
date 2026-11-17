@@ -1,7 +1,7 @@
-# cerebro runtime image: this checkout of cerebro and everything it loads,
+# cerebelo runtime image: this checkout of cerebelo and everything it loads,
 # on rocker/r2u. Build from the repository root:
 #
-#   podman build -t cerebro .
+#   podman build -t cerebelo .
 #
 # CRAN packages install as r2u apt binaries; packages CRAN does not carry
 # yet come as source from the repository named in DESCRIPTION's
@@ -29,9 +29,9 @@ RUN apt-get update \
 # Additional_repositories version is newer than the one that installed:
 # those are the development versions DESCRIPTION's floors ask for.
 ARG EXTRA_PACKAGES="mx.crypto"
-COPY DESCRIPTION /opt/src/cerebro/DESCRIPTION
+COPY DESCRIPTION /opt/src/cerebelo/DESCRIPTION
 RUN Rscript -e ' \
-    d <- read.dcf("/opt/src/cerebro/DESCRIPTION"); \
+    d <- read.dcf("/opt/src/cerebelo/DESCRIPTION"); \
     field <- function(f) if (f %in% colnames(d)) d[1L, f] else ""; \
     deps <- unlist(strsplit(c(field("Depends"), field("Imports"), field("Suggests")), ",")); \
     deps <- trimws(sub("\\(.*", "", deps)); \
@@ -56,9 +56,9 @@ RUN Rscript -e ' \
     ' \
     && rm -rf /var/lib/apt/lists/* /tmp/Rtmp*
 
-COPY . /opt/src/cerebro
-RUN R CMD INSTALL --no-docs /opt/src/cerebro \
-    && Rscript -e 'library(cerebro); cat("cerebro", as.character(packageVersion("cerebro")), "\n")'
+COPY . /opt/src/cerebelo
+RUN R CMD INSTALL --no-docs /opt/src/cerebelo \
+    && Rscript -e 'library(cerebelo); cat("cerebelo", as.character(packageVersion("cerebelo")), "\n")'
 
 # r2u enables bspm in Rprofile.site so install.packages() goes through apt
 # over D-Bus. Nothing installs at runtime, and without D-Bus the hook
@@ -69,8 +69,8 @@ RUN sed -i --follow-symlinks 's/^suppressMessages(bspm::enable())/# runtime imag
 # The image holds no persona. Mount an instance directory at /instance
 # and the credentials it needs, and run as a non-root user:
 #
-#   podman run --userns keep-id -v ~/mybot:/instance cerebro
+#   podman run --userns keep-id -v ~/mybot:/instance cerebelo
 #
 # Secrets stay outside the image and outside the instance repository.
 WORKDIR /instance
-CMD ["r", "-e", "cerebro::run('/instance')"]
+CMD ["r", "-e", "cerebelo::run('/instance')"]

@@ -1,7 +1,7 @@
 % tinyrox says don't edit this manually, but it can't stop you!
 \name{run}
 \alias{run}
-\title{Boot a cerebro instance from its YAML config}
+\title{Boot a cerebelo instance from its YAML config}
 \usage{
 run(
   instance_dir,

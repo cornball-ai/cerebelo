@@ -102,7 +102,7 @@
     resp <- tryCatch(
                      llm.api::chat(prompt = prompt, model = model, provider = provider),
                      error = function(e) {
-        message("cerebro: topic classify error: ", conditionMessage(e))
+        message("cerebelo: topic classify error: ", conditionMessage(e))
         NULL
     }
     )

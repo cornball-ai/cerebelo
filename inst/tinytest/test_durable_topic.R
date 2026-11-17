@@ -9,7 +9,7 @@ library(tinytest)
 # of. `mybot · ` was a real room too: the same answer with the words left
 # out, since an empty topic still made a non-empty prefixed name.
 
-dt <- getFromNamespace(".thread_durable_topic", "cerebro")
+dt <- getFromNamespace(".thread_durable_topic", "cerebelo")
 
 # ---- ordinary topics survive intact ------------------------------------
 # Listed first and generously, because everything below is a rejection

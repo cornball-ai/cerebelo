@@ -13,7 +13,7 @@ source("helper_matrix.R")
 # and about the third state event, the one that makes the space more than
 # a sidebar decoration.
 
-root <- file.path(tempdir(), paste0("cerebro-space-", Sys.getpid(), "-",
+root <- file.path(tempdir(), paste0("cerebelo-space-", Sys.getpid(), "-",
                                     sample.int(1e6, 1L)))
 dir.create(root, recursive = TRUE)
 
@@ -66,8 +66,8 @@ cl <- matrix_client(
         rid
     })
 
-read_state <- getFromNamespace("read_instance_state", "cerebro")
-via <- getFromNamespace(".mx_via", "cerebro")
+read_state <- getFromNamespace("read_instance_state", "cerebelo")
+via <- getFromNamespace(".mx_via", "cerebelo")
 
 # ---- the via server ----------------------------------------------------
 # Taken from the BOT'S user id, because a room id no longer carries a
@@ -91,7 +91,7 @@ expect_equal(length(via("", "!x")), 0L)
 
 # ---- a space is created as a space -------------------------------------
 sid <- suppressMessages(
-    cerebro::ensure_matrix_space("mybot", invite = "@owner:example.invalid",
+    cerebelo::ensure_matrix_space("mybot", invite = "@owner:example.invalid",
                                  client = cl, instance_dir = root)
 )
 expect_equal(length(fake$created), 1L)
@@ -125,7 +125,7 @@ expect_null(read_state(root)$matrix_rooms[["mybot"]])
 
 # Reused, not recreated.
 sid2 <- suppressMessages(
-    cerebro::ensure_matrix_space("mybot", client = cl, instance_dir = root)
+    cerebelo::ensure_matrix_space("mybot", client = cl, instance_dir = root)
 )
 expect_equal(sid2, sid)
 expect_equal(length(fake$created), 1L)
@@ -140,7 +140,7 @@ local({
     other <- file.path(root, "second-persona")
     dir.create(other, recursive = TRUE, showWarnings = FALSE)
     again <- suppressMessages(
-        cerebro::ensure_matrix_space("mybot", client = cl, instance_dir = other)
+        cerebelo::ensure_matrix_space("mybot", client = cl, instance_dir = other)
     )
     expect_equal(again, sid)
     expect_equal(length(fake$created), 1L)
@@ -151,7 +151,7 @@ local({
 # ---- a room filed under a space is NOT invited to ----------------------
 fake$state <- list()
 rid <- suppressMessages(
-    cerebro::ensure_matrix_room("Travel", client = cl, instance_dir = root,
+    cerebelo::ensure_matrix_room("Travel", client = cl, instance_dir = root,
                                 invite = "@owner:example.invalid",
                                 space = sid)
 )
@@ -201,7 +201,7 @@ fake$fail_join_rules <- TRUE
 fake$state <- list()
 fake$invited <- list()
 suppressMessages(
-    cerebro::ensure_matrix_room("Statistics", client = cl,
+    cerebelo::ensure_matrix_room("Statistics", client = cl,
                                 instance_dir = root,
                                 invite = "@owner:example.invalid",
                                 space = sid)
@@ -216,7 +216,7 @@ fake$fail_join_rules <- FALSE
 # a much quieter bug than eleven of them.
 before <- length(fake$created)
 suppressMessages(
-    cerebro::ensure_matrix_room("Cooking", client = cl, instance_dir = root,
+    cerebelo::ensure_matrix_room("Cooking", client = cl, instance_dir = root,
                                 invite = "@owner:example.invalid")
 )
 expect_equal(fake$created[[before + 1L]]$invite, "@owner:example.invalid")
@@ -225,7 +225,7 @@ expect_null(fake$created[[before + 1L]]$creation_content)
 # ---- dry run writes nothing -------------------------------------------
 n <- length(fake$created)
 expect_message(
-    cerebro::ensure_matrix_space("scratch", client = cl, dry_run = TRUE),
+    cerebelo::ensure_matrix_space("scratch", client = cl, dry_run = TRUE),
     pattern = "would create Matrix space"
 )
 expect_equal(length(fake$created), n)

@@ -1,7 +1,7 @@
 library(tinytest)
 
 idir <- file.path(tempdir(),
-                  paste0("cerebro-instance-", Sys.getpid(), "-",
+                  paste0("cerebelo-instance-", Sys.getpid(), "-",
                          sample.int(1e6, 1L)))
 for (d in c(file.path(idir, "todo", "this_week"),
             file.path(idir, "todo", "archive"),
@@ -22,7 +22,7 @@ ctx <- new.env(parent = emptyenv())
 ctx$date <- as.Date("2026-05-04")
 ctx$instance_dir <- idir
 
-out <- cerebro::briefing_source_hacer_todos("daily", ctx, list())
+out <- cerebelo::briefing_source_hacer_todos("daily", ctx, list())
 expect_true("TODAY'S TODO SECTION" %in% names(out))
 expect_true(grepl("source default task",
                   out[["TODAY'S TODO SECTION"]],
@@ -33,7 +33,7 @@ writeLines(c("one", "two"),
 writeLines("---\ntitle: Note\n---",
            file.path(idir, "wiki", "wiki", "note.md"))
 
-out <- cerebro::briefing_source_wiki("daily", ctx,
+out <- cerebelo::briefing_source_wiki("daily", ctx,
                                      list(tail_lines = 1L,
                                           recent_days = 1L))
 expect_equal(out[["WIKI LOG (tail)"]], "two")
@@ -60,7 +60,7 @@ Sys.setFileTime(
     vault_files,
     as.POSIXct("2026-05-04 12:00:00", tz = Sys.timezone())
 )
-out <- cerebro::briefing_source_vault_recent(
+out <- cerebelo::briefing_source_vault_recent(
     "daily", ctx,
     list(vault = vault, days = 1L, max_chars = 100L,
          exclude_groups = "matrix")
@@ -83,7 +83,7 @@ system2("git", c("-C", repo, "add", "file.txt"))
 system2("git", c("-C", repo, "-c", "user.name=Test",
                  "-c", "user.email=test@example.com", "commit", "-qm",
                  "Evidence"))
-out <- cerebro::briefing_source_git_recent(
+out <- cerebelo::briefing_source_git_recent(
     "daily", ctx,
     list(discover = FALSE, days = 1L,
          extra_repos = list(demo = repo))
@@ -97,7 +97,7 @@ if (requireNamespace("fortunes", quietly = TRUE)) {
     ctx$git_recent_text <- "software code model data"
     ctx$vault_recent_text <- "programming language design"
     ctx$chat_recent_text <- "conversation architecture memory"
-    out <- cerebro::briefing_source_fortune_candidates(
+    out <- cerebelo::briefing_source_fortune_candidates(
         "daily", ctx, list(max_candidates = 3L)
     )
     expect_true("FORTUNE CANDIDATES" %in% names(out))
