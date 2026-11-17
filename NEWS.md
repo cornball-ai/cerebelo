@@ -1,3 +1,10 @@
+# cerebelo 0.2.0.3
+
+- Renamed the package from cerebro to cerebelo. The API and behavior are
+  unchanged; callers move from `cerebro::` to `cerebelo::`. The routines
+  state directory moves to `R_user_dir("cerebelo")`, and
+  `options(cerebro.instance_dir)` becomes `cerebelo.instance_dir`.
+
 # cerebelo 0.2.0.2
 
 - `run()` returns on an interrupt instead of dying with the process. A
