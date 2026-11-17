@@ -39,6 +39,18 @@ skip startup files, so empty falls through), then
 in config, skips loading. Values in the file override inherited
 environment variables.
 
+Two optional top-level \code{config.yaml} keys point the shared stores
+at per-instance paths: \code{vault:} for the pensar knowledge vault and
+\code{todo:} for the hacer repository. When either is set, \code{run()}
+configures that package in this process and exports \code{PENSAR_VAULT}
+or \code{HACER_REPO} so the shell-capability scripts it spawns inherit
+the same path. This replaces a shared \code{~/.Rprofile}: littler's
+\code{r} sourced it, but \code{Rscript} honors
+\code{R_PROFILE_USER=/dev/null} and does not, so a bot run under
+\code{Rscript} would otherwise archive to no vault. Both keys accept a
+\code{$instance_dir} or \code{~} prefix; an absent key leaves that store
+unconfigured.
+
 The loop ends on an interrupt and nothing else, so a service stops the
 process with SIGINT. R has no handler for SIGTERM, and as a container's
 PID 1 the process gets no default action for it either, so SIGTERM is

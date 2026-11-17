@@ -47,6 +47,18 @@
 #'   in config, skips loading. Values in the file override inherited
 #'   environment variables.
 #'
+#' Two optional top-level \code{config.yaml} keys point the shared stores
+#' at per-instance paths: \code{vault:} for the pensar knowledge vault and
+#' \code{todo:} for the hacer repository. When either is set, \code{run()}
+#' configures that package in this process and exports \code{PENSAR_VAULT}
+#' or \code{HACER_REPO} so the shell-capability scripts it spawns inherit
+#' the same path. This replaces a shared \code{~/.Rprofile}: littler's
+#' \code{r} sourced it, but \code{Rscript} honors
+#' \code{R_PROFILE_USER=/dev/null} and does not, so a bot run under
+#' \code{Rscript} would otherwise archive to no vault. Both keys accept a
+#' \code{$instance_dir} or \code{~} prefix; an absent key leaves that store
+#' unconfigured.
+#'
 #' The loop ends on an interrupt and nothing else, so a service stops the
 #' process with SIGINT. R has no handler for SIGTERM, and as a container's
 #' PID 1 the process gets no default action for it either, so SIGTERM is
@@ -84,6 +96,12 @@ run <- function(instance_dir, tick_seconds = 30L,
         renviron <- .resolve_renviron(cfg$renviron, renviron)
     }
     .load_renviron(renviron)
+
+    # Point pensar and hacer at the instance's vault and todo repo from
+    # config, and export PENSAR_VAULT / HACER_REPO for the shell scripts
+    # this runtime spawns. Replaces the shared ~/.Rprofile that `r` sourced
+    # and Rscript does not. A no-op when the keys are absent.
+    .configure_stores(cfg)
 
     if (file.exists(config_file)) {
         register_from_config(instance_dir = instance_dir)
@@ -135,6 +153,51 @@ run <- function(instance_dir, tick_seconds = 30L,
         message("cerebelo: interrupted; stopping")
     })
     invisible(NULL)
+}
+
+# Point pensar and hacer at the instance's per-instance paths from config.
+# The shared ~/.Rprofile set these under littler's `r`; Rscript honors
+# R_PROFILE_USER=/dev/null and does not, so a bot run under Rscript loses
+# them and archives to no vault. `vault:` and `todo:` are optional
+# top-level config keys; an absent key leaves that store alone.
+.configure_stores <- function(cfg) {
+    .configure_store(cfg$vault, "PENSAR_VAULT", "pensar vault",
+                     function(p) pensar::use_vault(p))
+    use_repo <- if (requireNamespace("hacer", quietly = TRUE)) {
+        getExportedValue("hacer", "use_repo")
+    } else {
+        NULL
+    }
+    .configure_store(cfg$todo, "HACER_REPO", "hacer repo", use_repo)
+    invisible(NULL)
+}
+
+# Configure one store: export its env var so the shell scripts this
+# runtime spawns inherit the path, then set it in-process when a setter is
+# available (its package installed). A path that will not load is
+# reported, not fatal, so a misconfigured store never stops the bot.
+.configure_store <- function(path, envvar, label, setter) {
+    if (!(is.character(path) && length(path) == 1L && nzchar(path))) {
+        return(invisible(FALSE))
+    }
+    args <- list(path)
+    names(args) <- envvar
+    do.call(Sys.setenv, args)
+    if (is.null(setter)) {
+        return(invisible(TRUE))
+    }
+    ok <- tryCatch({
+        setter(path)
+        TRUE
+    }, error = function(e) {
+        message("cerebelo: ", label, " ", path, " not usable: ",
+                conditionMessage(e))
+        FALSE
+    })
+    if (ok) {
+        message("cerebelo: ", label, " ", path)
+    }
+    invisible(TRUE)
 }
 
 # The scheduler loop: fire due routines, then wait out the tick in the
