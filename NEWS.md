@@ -1,3 +1,12 @@
+# cerebelo 0.2.0.5
+
+- `publish_commands()` writes a bot's slash-command list to a room as an
+  `org.matrix.msc4332.commands` state event, keyed by the bot's user id,
+  through chat.api so it is transport-neutral. `default_commands()` supplies
+  the built-in `cd` / `provider` / `model` / `rc` commands, and
+  `command_list_content()` formats a command list into the event content.
+  First piece of the agent-session bot side.
+
 # cerebelo 0.2.0.4
 
 - `run()` configures the pensar vault and hacer repo from two optional
