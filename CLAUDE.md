@@ -1,6 +1,6 @@
-# cerebro development guide
+# cerebelo development guide
 
-cerebro is an R package first. It is also the source of truth for the
+cerebelo is an R package first. It is also the source of truth for the
 runtime, shared behavior, and canonical shape of the assistant personas built
 on it.
 
@@ -10,17 +10,17 @@ runtime logic into persona repositories.
 
 ## Architecture
 
-cerebro has three responsibilities:
+cerebelo has three responsibilities:
 
 1. **Runtime.** `run()` loads an instance's `config.yaml`, registers routines,
    and drives the scheduler and optional Matrix loop.
 2. **Shared behavior.** Reusable operations such as `sync_todo()` live in
    exported, documented, tested R functions.
-3. **Scaffolding.** cerebro defines and generates the structural files that
+3. **Scaffolding.** cerebelo defines and generates the structural files that
    make a repository a persona instance.
 
 Persona repositories remain standalone repositories. They are thin instances
-of cerebro, not source directories embedded in this package and not entries
+of cerebelo, not source directories embedded in this package and not entries
 relocated under `~/.corteza/instances/`.
 
 There are two supported repository shapes:
@@ -28,7 +28,7 @@ There are two supported repository shapes:
 - A pure persona repository, where the repository exists to host the
   assistant.
 - A project with an attached persona layer, where the project remains primary
-  and cerebro manages only the small set of persona files.
+  and cerebelo manages only the small set of persona files.
 
 The generator must support both without taking ownership of unrelated project
 files.
@@ -37,7 +37,7 @@ files.
 
 | Path | Purpose | Tracking rule |
 |---|---|---|
-| `config.yaml` | cerebro routines, briefings, and Matrix settings | Track |
+| `config.yaml` | cerebelo routines, briefings, and Matrix settings | Track |
 | `CLAUDE.md` and `AGENTS.md` | Persona identity and agent instructions | Track |
 | `<name>.service` and optional `.timer` | User-scoped service definitions | Track |
 | `prompts/*.md` | Persona-owned system prompts | Track |
@@ -51,10 +51,10 @@ files.
 | `state.json`, logs, caches | Runtime state | Ignore |
 | Generated media and reports | Runtime output | Ignore or store under `~/Sync` |
 
-Secrets never belong in a persona repository or in cerebro. Matrix credentials
+Secrets never belong in a persona repository or in cerebelo. Matrix credentials
 remain in the user's external corteza configuration.
 
-At the cerebro package root, `AGENTS.md` is intentionally a symlink to this
+At the cerebelo package root, `AGENTS.md` is intentionally a symlink to this
 file so Claude and Codex receive one canonical development guide. Generated
 personas receive separate starter files because their identity and operational
 instructions may diverge.
@@ -123,7 +123,7 @@ r -e 'saber::blast_radius("function_name", ".")'
 Use the standard package workflow after implementation:
 
 ```bash
-r -e 'rformat::rformat_dir("R", control_braces = "multi", expand_if = TRUE); tinyrox::document(); tinypkgr::install(); tinytest::test_package("cerebro")'
+r -e 'rformat::rformat_dir("R", control_braces = "multi", expand_if = TRUE); tinyrox::document(); tinypkgr::install(); tinytest::test_package("cerebelo")'
 ```
 
 Use `tinypkgr::check()` for the package check.
@@ -136,10 +136,10 @@ Use `tinypkgr::check()` for the package check.
 - Do not add `Co-Authored-By` trailers or force-push.
 - Let the user review README and other public documentation before committing.
 - Use incremental commits during review and squash when merging the PR.
-- Restart long-running persona services after reinstalling cerebro or one of
+- Restart long-running persona services after reinstalling cerebelo or one of
   its loaded dependencies.
 
 Development plans and task notes live outside the repository in
-`~/tasks/cerebro/`. The active implementation plan is
-`~/tasks/cerebro/persona-cleanup-plan.md`. They are development artifacts,
+`~/tasks/cerebelo/`. The active implementation plan is
+`~/tasks/cerebelo/persona-cleanup-plan.md`. They are development artifacts,
 not package content.

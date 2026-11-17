@@ -4,7 +4,7 @@
 library(tinytest)
 
 expect_error(
-    cerebro::sync_todo(source_root = tempdir(), target_root = tempdir(),
+    cerebelo::sync_todo(source_root = tempdir(), target_root = tempdir(),
                        dry_run = TRUE),
     "source_path must be a non-empty character scalar"
 )
@@ -17,14 +17,14 @@ for (f in c("todo_260601_week.md", "todo_260608_week.md",
             "todo_260615_week.md")) {
     writeLines("# wk", file.path(tw, f))
 }
-got <- cerebro:::.sync_week_file(tw, as.Date("2026-06-10"))
+got <- cerebelo:::.sync_week_file(tw, as.Date("2026-06-10"))
 expect_equal(basename(got), "todo_260608_week.md")  # 06-15 is in the future
-expect_null(cerebro:::.sync_week_file(tw, as.Date("2026-05-01")))
+expect_null(cerebelo:::.sync_week_file(tw, as.Date("2026-05-01")))
 
 # ---- .sync_summary strips the target prefix and labels sections ----
 plan <- list(added = c("cornball.ai > NewThing"),
              restatused = c("cornball.ai > OSS"))
-sm <- cerebro:::.sync_summary(plan, "cornball.ai")
+sm <- cerebelo:::.sync_summary(plan, "cornball.ai")
 expect_true(grepl("Added", sm))
 expect_true(grepl("- NewThing", sm))
 expect_true(grepl("Status updated", sm))
@@ -43,7 +43,7 @@ if (requireNamespace("hacer", quietly = TRUE)) {
     writeLines(c("# wk", "", "- [ ] cornball.ai", "  - [ ] OSS"), tgt_file)
     before <- readLines(tgt_file)
 
-    plan <- cerebro::sync_todo(
+    plan <- cerebelo::sync_todo(
         name = "t", source_repo = NULL,
         source_root = src_root, target_root = tgt_root,
         source_path = "Owner > cornball.ai", target_path = "cornball.ai",

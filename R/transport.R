@@ -24,7 +24,7 @@
 #'   default location.
 #' @param markdown Logical. If TRUE, the body is rendered as markdown.
 #' @param msgtype Character. Matrix msgtype. Defaults to \code{"m.notice"}:
-#'   everything cerebro sends through this wrapper is proactive persona
+#'   everything cerebelo sends through this wrapper is proactive persona
 #'   traffic (briefings, sync summaries, reconcile reports), which clients
 #'   render without a notification ping. Pass \code{"m.text"} for a message
 #'   that should notify.
@@ -92,10 +92,10 @@ resolve_room <- function(room, instance_dir = NULL, matrix_config = NULL,
         state$matrix_rooms <- c(state$matrix_rooms %||% list(),
                                 stats::setNames(list(rid), room_key))
         write_instance_state(state, instance_dir)
-        message(sprintf("cerebro: cached room %s -> %s", room, rid))
+        message(sprintf("cerebelo: cached room %s -> %s", room, rid))
         return(rid)
     }
-    message(sprintf("cerebro: no joined room named %s; using default", room))
+    message(sprintf("cerebelo: no joined room named %s; using default", room))
     .default_room(matrix_config)
 }
 
@@ -111,7 +111,7 @@ resolve_room <- function(room, instance_dir = NULL, matrix_config = NULL,
 
 # corteza's Matrix config. An explicit path wins; otherwise chat.api
 # resolves CORTEZA_MATRIX_CONFIG and then corteza's default location,
-# exactly as corteza itself does, so cerebro and the bot it hosts read
+# exactly as corteza itself does, so cerebelo and the bot it hosts read
 # the same file.
 .chat_config <- function(path = NULL) {
     if (is.null(path) || !nzchar(path)) {
@@ -121,7 +121,7 @@ resolve_room <- function(room, instance_dir = NULL, matrix_config = NULL,
     chat.api::chat_matrix_config(app = "corteza", path = path)
 }
 
-# The client cerebro's out-of-band traffic goes through: briefing
+# The client cerebelo's out-of-band traffic goes through: briefing
 # sends, the fold sweep, room creation. Built the way corteza builds the
 # bot's own client, from the same config, so the two agree on the
 # account, the homeserver, and whether rooms are encrypted.
@@ -168,11 +168,11 @@ resolve_room <- function(room, instance_dir = NULL, matrix_config = NULL,
 
 # Set the bot's Matrix avatar from the instance config, once, at startup.
 # A bot's identity -- its avatar, like its display name -- is the bot
-# layer's job, so it lives here in cerebro rather than in corteza's turn
+# layer's job, so it lives here in cerebelo rather than in corteza's turn
 # engine. (The display name is the one piece corteza keeps, because it
 # rewrites it live to badge the current model.) Creds come from the same
 # corteza Matrix config the poll loop uses; only the avatar file is read
-# from cerebro's own config.
+# from cerebelo's own config.
 #
 # Best-effort: any failure is logged and returns FALSE, so a bad path or a
 # briefly unreachable homeserver never blocks the scheduler/poll loop.
@@ -187,12 +187,12 @@ resolve_room <- function(room, instance_dir = NULL, matrix_config = NULL,
     }
     path <- path.expand(avatar)
     if (!file.exists(path)) {
-        message("cerebro: matrix avatar not found at ", path, "; skipping")
+        message("cerebelo: matrix avatar not found at ", path, "; skipping")
         return(invisible(FALSE))
     }
     md5 <- unname(tools::md5sum(path))
     if (is.na(md5)) {
-        message("cerebro: could not read matrix avatar ", path, "; skipping")
+        message("cerebelo: could not read matrix avatar ", path, "; skipping")
         return(invisible(FALSE))
     }
     if (identical(read_instance_state(instance_dir)$matrix_avatar_md5, md5)) {
@@ -202,13 +202,13 @@ resolve_room <- function(room, instance_dir = NULL, matrix_config = NULL,
         chat.api::chat_set_identity(client %||% .chat_client(), avatar = path)
         TRUE
     }, error = function(e) {
-        message("cerebro: setting matrix avatar failed: ", conditionMessage(e))
+        message("cerebelo: setting matrix avatar failed: ", conditionMessage(e))
         FALSE
     })
     if (isTRUE(ok)) {
         update_instance_state(matrix_avatar_md5 = md5,
                               instance_dir = instance_dir)
-        message("cerebro: matrix avatar set from ", path)
+        message("cerebelo: matrix avatar set from ", path)
     }
     invisible(ok)
 }
@@ -306,9 +306,9 @@ ensure_matrix_space <- function(name, topic = NULL, invite = character(),
     }
     if (isTRUE(dry_run)) {
         if (is.null(sid)) {
-            message("cerebro: would create Matrix space ", name)
+            message("cerebelo: would create Matrix space ", name)
         } else {
-            message("cerebro: would reuse Matrix space ", name)
+            message("cerebelo: would reuse Matrix space ", name)
         }
         return(invisible(sid %||% name))
     }
@@ -317,7 +317,7 @@ ensure_matrix_space <- function(name, topic = NULL, invite = character(),
             topic = topic, preset = "private_chat",
             invite = as.character(invite),
             creation_content = list(type = "m.space"))
-        message("cerebro: created Matrix space ", name, " -> ", sid)
+        message("cerebelo: created Matrix space ", name, " -> ", sid)
         .open_space_filing(client, sid, name)
     }
     if (!is.null(instance_dir)) {
@@ -355,7 +355,7 @@ ensure_matrix_space <- function(name, topic = NULL, invite = character(),
                                  levels)
         TRUE
     }, error = function(e) {
-        message("cerebro: could not open ", name,
+        message("cerebelo: could not open ", name,
                 " to filing by its members: ", conditionMessage(e))
         FALSE
     })
@@ -413,7 +413,7 @@ ensure_matrix_space <- function(name, topic = NULL, invite = character(),
         # No via means a child event no client will render. Refusing is
         # the whole point: the write would succeed and the space would
         # look filed and read empty.
-        message("cerebro: no via server for ", name,
+        message("cerebelo: no via server for ", name,
                 "; not filing it under the space")
         via <- NULL
     }
@@ -430,7 +430,7 @@ ensure_matrix_space <- function(name, topic = NULL, invite = character(),
                         room_id = space_id))))
         TRUE
     }, error = function(e) {
-        message("cerebro: could not file ", name, " under the space: ",
+        message("cerebelo: could not file ", name, " under the space: ",
                 conditionMessage(e))
         FALSE
     })
@@ -439,9 +439,9 @@ ensure_matrix_space <- function(name, topic = NULL, invite = character(),
             for (u in as.character(invite)) {
                 chat.api::chat_channel_invite(client, room_id, u)
             }
-            message("cerebro: invited to ", name, " directly instead")
+            message("cerebelo: invited to ", name, " directly instead")
         }, error = function(e) {
-            message("cerebro: could not invite to ", name, ": ",
+            message("cerebelo: could not invite to ", name, ": ",
                     conditionMessage(e))
         })
     }
@@ -505,11 +505,11 @@ ensure_matrix_room <- function(name, topic = NULL, invite = character(),
     }
     if (isTRUE(dry_run)) {
         if (!is.null(legacy)) {
-            message("cerebro: would rename Matrix room ", legacy, " -> ", name)
+            message("cerebelo: would rename Matrix room ", legacy, " -> ", name)
         } else if (is.null(rid)) {
-            message("cerebro: would create Matrix room ", name)
+            message("cerebelo: would create Matrix room ", name)
         } else {
-            message("cerebro: would reuse Matrix room ", name)
+            message("cerebelo: would reuse Matrix room ", name)
         }
         return(invisible(rid %||% name))
     }
@@ -521,7 +521,7 @@ ensure_matrix_room <- function(name, topic = NULL, invite = character(),
         rid <- chat.api::chat_channel_create(client, name = name,
             topic = topic, preset = "private_chat",
             invite = if (in_space) character() else as.character(invite))
-        message("cerebro: created Matrix room ", name, " -> ", rid)
+        message("cerebelo: created Matrix room ", name, " -> ", rid)
         if (in_space) {
             .file_in_space(client, space, rid, name, invite)
         }
@@ -532,9 +532,9 @@ ensure_matrix_room <- function(name, topic = NULL, invite = character(),
             tryCatch({
                 chat.api::chat_set_state(client, rid, "m.room.name",
                     list(name = name))
-                message("cerebro: renamed Matrix room ", legacy, " -> ", name)
+                message("cerebelo: renamed Matrix room ", legacy, " -> ", name)
             }, error = function(e) {
-                message("cerebro: could not rename Matrix room ", legacy,
+                message("cerebelo: could not rename Matrix room ", legacy,
                         ": ", conditionMessage(e))
             })
         }

@@ -12,13 +12,13 @@ library(tinytest)
 # the conversation is still threaded, under the repo it was actually
 # about.
 
-gr <- getFromNamespace(".thread_git_root", "cerebro")
+gr <- getFromNamespace(".thread_git_root", "cerebelo")
 
 if (!nzchar(Sys.which("git"))) {
     exit_file("git not installed")
 }
 
-root <- file.path(tempdir(), paste0("cerebro-gitroot-", Sys.getpid(), "-",
+root <- file.path(tempdir(), paste0("cerebelo-gitroot-", Sys.getpid(), "-",
                                     sample.int(1e6, 1L)))
 main <- file.path(root, "repo")
 dir.create(main, recursive = TRUE)

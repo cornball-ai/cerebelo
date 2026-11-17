@@ -1,5 +1,5 @@
-#' @title cerebro: AI Agent Toolchain for R
-#' @description Meta-package that installs the cerebro AI agent toolchain.
+#' @title cerebelo: AI Agent Toolchain for R
+#' @description Meta-package that installs the cerebelo AI agent toolchain.
 #'
 #' @section Packages:
 #' \describe{
@@ -20,12 +20,12 @@ NULL
 # directive; a `pkg::` call loads the namespace with no version check
 # at all. Depends floors are checked at load regardless.
 
-#' Check which cerebro packages are installed
+#' Check which cerebelo packages are installed
 #'
 #' @return A data.frame with columns: package, installed, version.
 #' @importFrom utils packageVersion
 #' @examples
-#' cerebro::status()
+#' cerebelo::status()
 #' @export
 status <- function() {
     pkgs <- c("saber", "pensar", "corteza", "llm.api", "hacer")

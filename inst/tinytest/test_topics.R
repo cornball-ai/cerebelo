@@ -15,7 +15,7 @@ source("helper_matrix.R")
 local({
     topics <- c(Cooking = "!cook:ex", Reading = "!read:ex")
     dec <- function(cls) {
-        cerebro:::.topic_decision(cls, topics, threshold = 0.7,
+        cerebelo:::.topic_decision(cls, topics, threshold = 0.7,
                                   unsorted = "Unsorted")
     }
     unsorted <- list(topic = "Unsorted", create = FALSE)
@@ -68,7 +68,7 @@ local({
     reply <- list(content = paste0("Sure, here you go: {\"topic\": ",
                                    "\"Cooking\", \"new\": false, ",
                                    "\"confidence\": 0.85} Hope that helps!"))
-    cls <- cerebro:::.classify_segment("Sourdough starter (2026-08-01)",
+    cls <- cerebelo:::.classify_segment("Sourdough starter (2026-08-01)",
                                        "excerpt text",
                                        c(Cooking = "!cook:ex"),
                                        model = "m", provider = "p")
@@ -80,7 +80,7 @@ local({
 
     # No JSON in the reply is NULL, not an error.
     reply <- list(content = "I cannot decide.")
-    expect_null(cerebro:::.classify_segment("t", "", character(),
+    expect_null(cerebelo:::.classify_segment("t", "", character(),
                                             model = "m", provider = "p"))
 
     # Malformed replies -- content missing, empty, or not a string --
@@ -89,7 +89,7 @@ local({
                      list(content = NULL), list(content = list("x")),
                      list(content = NA_character_), character(0))) {
         reply <- bad
-        expect_null(cerebro:::.classify_segment("t", "", character(),
+        expect_null(cerebelo:::.classify_segment("t", "", character(),
                                                 model = "m",
                                                 provider = "p"))
     }
@@ -99,7 +99,7 @@ local({
     assignInNamespace("chat", function(...) stop("api down"),
                       ns = "llm.api")
     expect_message(
-        res <- cerebro:::.classify_segment("t", "", character(),
+        res <- cerebelo:::.classify_segment("t", "", character(),
                                            model = "m", provider = "p"),
         "classify error")
     expect_null(res)
@@ -128,7 +128,7 @@ local({
             nm <- names_by_id[rid]
             if (is.na(nm)) stop("M_NOT_FOUND") else nm[[1L]]
         }, topic = function(sess, rid) NULL))
-    topics <- cerebro:::.topic_rooms(cl)
+    topics <- cerebelo:::.topic_rooms(cl)
     expect_identical(topics[["Cooking"]], "!cook:ex")
     # The rename won: the classifier sees Outdoor, not Gardening.
     expect_identical(topics[["Outdoor"]], "!garden:ex")
@@ -186,9 +186,9 @@ local({
         },
         .create = function(sess, name, ...) paste0("!", tolower(name), ":ex"))
 
-    orig_cls <- cerebro:::.classify_segment
+    orig_cls <- cerebelo:::.classify_segment
     on.exit(assignInNamespace(".classify_segment", orig_cls,
-                              ns = "cerebro"), add = TRUE)
+                              ns = "cerebelo"), add = TRUE)
     assignInNamespace(".classify_segment",
                       function(title, excerpt, topics, model, provider) {
         if (grepl("Trip plans", title, fixed = TRUE)) {
@@ -199,11 +199,11 @@ local({
                         confidence = 0.95))
         }
         list(topic = "Whatever", new = FALSE, confidence = 0.2)
-    }, ns = "cerebro")
+    }, ns = "cerebelo")
 
     # room = NULL routes the new-topic announcement to message().
     expect_message(
-        res <- cerebro::sweep_segments(model = "m", client = cl),
+        res <- cerebelo::sweep_segments(model = "m", client = cl),
         "New topic room: Gardening")
 
     filed <- vapply(res$folded, function(f) f$topic, character(1))
@@ -261,9 +261,9 @@ local({
         })
 
     # Before: the unstamped Finance thread room is invisible.
-    expect_identical(names(cerebro:::.topic_rooms(cl)), "Books")
+    expect_identical(names(cerebelo:::.topic_rooms(cl)), "Books")
 
-    expect_true(cerebro:::.stamp_topic_room(cl, "!fin:ex", "Finance"))
+    expect_true(cerebelo:::.stamp_topic_room(cl, "!fin:ex", "Finance"))
     expect_identical(length(sets), 1L)
     expect_identical(sets[[1L]]$room, "!fin:ex")
     expect_identical(sets[[1L]]$type, "ai.cornball.lifecycle")
@@ -273,27 +273,27 @@ local({
 
     # After: the same sweep's classifier now has two candidates.
     expect_true(all(c("Books", "Finance") %in%
-                    names(cerebro:::.topic_rooms(cl))))
+                    names(cerebelo:::.topic_rooms(cl))))
 
     # Idempotent: a nightly sweep re-touching the room writes nothing.
-    expect_false(cerebro:::.stamp_topic_room(cl, "!fin:ex", "Finance"))
+    expect_false(cerebelo:::.stamp_topic_room(cl, "!fin:ex", "Finance"))
     expect_identical(length(sets), 1L)
 
     # An unreadable name falls back to the caller's label.
-    expect_true(cerebro:::.stamp_topic_room(cl, "!noname:ex", "Travel"))
+    expect_true(cerebelo:::.stamp_topic_room(cl, "!noname:ex", "Travel"))
     expect_identical(sets[[2L]]$content$topic, "Travel")
 
     # Nothing to stamp, nothing written.
-    expect_false(cerebro:::.stamp_topic_room(NULL, "!fin:ex", "Finance"))
-    expect_false(cerebro:::.stamp_topic_room(cl, "", "Finance"))
-    expect_false(cerebro:::.stamp_topic_room(cl, "!noname:ex", ""))
+    expect_false(cerebelo:::.stamp_topic_room(NULL, "!fin:ex", "Finance"))
+    expect_false(cerebelo:::.stamp_topic_room(cl, "", "Finance"))
+    expect_false(cerebelo:::.stamp_topic_room(cl, "!noname:ex", ""))
     expect_identical(length(sets), 2L)
 
     # A Matrix failure is reported and swallowed: the thread is already
     # filed, and the next sweep retries the stamp.
     refuse <- TRUE
     expect_message(
-        res <- cerebro:::.stamp_topic_room(cl, "!other:ex", "Cooking"),
+        res <- cerebelo:::.stamp_topic_room(cl, "!other:ex", "Cooking"),
         "could not stamp")
     expect_false(res)
 })
@@ -324,18 +324,18 @@ local({
         })
 
     # Vetoed: excluded stays excluded, a segment room stays a segment.
-    expect_false(cerebro:::.stamp_topic_room(cl, "!profile:ex", "Owner profile"))
-    expect_false(cerebro:::.stamp_topic_room(cl, "!seg:ex", "Old thread"))
+    expect_false(cerebelo:::.stamp_topic_room(cl, "!profile:ex", "Owner profile"))
+    expect_false(cerebelo:::.stamp_topic_room(cl, "!seg:ex", "Old thread"))
     expect_identical(length(sets), 0L)
     expect_identical(states[["!profile:ex"]]$state, "excluded")
 
     # An excluded room is not a candidate.
-    expect_false("Owner profile" %in% names(cerebro:::.topic_rooms(cl)))
-    expect_false("!profile:ex" %in% unname(cerebro:::.topic_rooms(cl)))
+    expect_false("Owner profile" %in% names(cerebelo:::.topic_rooms(cl)))
+    expect_false("!profile:ex" %in% unname(cerebelo:::.topic_rooms(cl)))
 
     # A missing or empty state is not a veto: those rooms still stamp.
-    expect_true(cerebro:::.stamp_topic_room(cl, "!blank:ex", "Blank"))
-    expect_true(cerebro:::.stamp_topic_room(cl, "!empty:ex", "Empty"))
+    expect_true(cerebelo:::.stamp_topic_room(cl, "!blank:ex", "Blank"))
+    expect_true(cerebelo:::.stamp_topic_room(cl, "!empty:ex", "Empty"))
     expect_identical(length(sets), 2L)
     expect_identical(sets[[1L]]$content$state, "topic")
 })

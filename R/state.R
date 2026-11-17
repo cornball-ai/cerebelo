@@ -1,10 +1,10 @@
 # Persist routine `last_fired` timestamps so a restart picks up where
 # it left off rather than firing every routine on boot.
 
-#' Path to the cerebro routines state file
+#' Path to the cerebelo routines state file
 #'
 #' Resolves under \code{$CEREBRO_STATE_DIR} when set (useful for
-#' tests), else \code{tools::R_user_dir("cerebro", "data")/state}.
+#' tests), else \code{tools::R_user_dir("cerebelo", "data")/state}.
 #' (\code{R_user_dir} only accepts data/config/cache, hence the subdir.)
 #' With an \code{instance} name the file is
 #' \code{routines-<instance>.json}, so instances don't clobber each
@@ -21,7 +21,7 @@ routines_state_path <- function(instance = NULL) {
     dir <- if (nzchar(env)) {
         env
     } else {
-        file.path(tools::R_user_dir("cerebro", "data"), "state")
+        file.path(tools::R_user_dir("cerebelo", "data"), "state")
     }
     fname <- if (is.null(instance) || !nzchar(instance)) {
         "routines.json"
@@ -59,7 +59,7 @@ load_routines_state <- function(path = routines_state_path()) {
                       jsonlite::fromJSON(path, simplifyVector = TRUE,
             simplifyDataFrame = FALSE),
                       error = function(e) {
-        message("cerebro: state file unreadable, ignoring: ",
+        message("cerebelo: state file unreadable, ignoring: ",
                 conditionMessage(e))
         list()
     }

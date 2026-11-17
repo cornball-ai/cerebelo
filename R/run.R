@@ -1,4 +1,4 @@
-#' Boot a cerebro instance from its YAML config
+#' Boot a cerebelo instance from its YAML config
 #'
 #' Reads \code{<instance_dir>/config.yaml}, registers each routine via
 #' \code{\link{add_routine}}, restores any persisted \code{last_fired}
@@ -66,14 +66,14 @@ run <- function(instance_dir, tick_seconds = 30L,
                 state_path = routines_state_path(basename(instance_dir)),
                 matrix = NULL, renviron = .default_renviron()) {
     instance_dir <- normalizePath(instance_dir, mustWork = TRUE)
-    options(cerebro.instance_dir = instance_dir)
+    options(cerebelo.instance_dir = instance_dir)
     Sys.setenv(CEREBRO_INSTANCE_DIR = instance_dir)
-    suppressMessages(library(cerebro))
+    suppressMessages(library(cerebelo))
 
     config_file <- file.path(instance_dir, "config.yaml")
     cfg <- list()
     if (file.exists(config_file)) {
-        message("cerebro: loading ", config_file)
+        message("cerebelo: loading ", config_file)
         cfg <- read_instance_config(instance_dir)
     }
 
@@ -91,23 +91,23 @@ run <- function(instance_dir, tick_seconds = 30L,
 
     routines_file <- file.path(instance_dir, "routines.R")
     if (file.exists(routines_file)) {
-        message("cerebro: sourcing ", routines_file)
+        message("cerebelo: sourcing ", routines_file)
         sys.source(routines_file, envir = globalenv())
     }
     if (!file.exists(config_file) && !file.exists(routines_file)) {
-        message("cerebro: no config.yaml or routines.R in ", instance_dir,
+        message("cerebelo: no config.yaml or routines.R in ", instance_dir,
                 " (running with whatever's already registered)")
     }
 
     if (!is.null(state_path)) {
         n <- load_routines_state(state_path)
         if (n > 0L) {
-            message("cerebro: restored last_fired for ", n, " routine(s)")
+            message("cerebelo: restored last_fired for ", n, " routine(s)")
         }
     }
 
     n_reg <- length(ls(.routines, all.names = TRUE))
-    message("cerebro: starting scheduler with ", n_reg,
+    message("cerebelo: starting scheduler with ", n_reg,
             " routine(s), tick every ", tick_seconds, "s")
 
     # Optionally fold the corteza Matrix long-poll into this loop, so a
@@ -132,7 +132,7 @@ run <- function(instance_dir, tick_seconds = 30L,
 
     tryCatch(.run_loop(mstate, mtimeout, tick_seconds, state_path),
              interrupt = function(i) {
-        message("cerebro: interrupted; stopping")
+        message("cerebelo: interrupted; stopping")
     })
     invisible(NULL)
 }
@@ -145,7 +145,7 @@ run <- function(instance_dir, tick_seconds = 30L,
     repeat {
         tryCatch(tick_routines(state_path = state_path),
                  error = function(e) {
-            message("cerebro: routine tick error: ", conditionMessage(e))
+            message("cerebelo: routine tick error: ", conditionMessage(e))
         })
         if (is.null(mstate)) {
             Sys.sleep(tick_seconds)
@@ -154,7 +154,7 @@ run <- function(instance_dir, tick_seconds = 30L,
             replied <- tryCatch(
                                 corteza::bot_run_step(mstate, timeout = mtimeout),
                                 error = function(e) {
-                message("cerebro: matrix step error: ", conditionMessage(e))
+                message("cerebelo: matrix step error: ", conditionMessage(e))
                 -1L
             })
             # Floor the iteration rate so a poll that did no work can't
@@ -213,7 +213,7 @@ run <- function(instance_dir, tick_seconds = 30L,
         return(invisible(FALSE))
     }
     readRenviron(path)
-    message("cerebro: loaded ", path)
+    message("cerebelo: loaded ", path)
     invisible(TRUE)
 }
 
@@ -245,14 +245,14 @@ run <- function(instance_dir, tick_seconds = 30L,
 # lives in one place.
 .start_matrix_loop <- function(mcfg) {
     if (!requireNamespace("corteza", quietly = TRUE)) {
-        message("cerebro: matrix enabled but 'corteza' is not installed; ",
+        message("cerebelo: matrix enabled but 'corteza' is not installed; ",
                 "running the scheduler only")
         return(NULL)
     }
     # The lifecycle's open half rides corteza's loop as hooks: the
     # segment room a /clear opens, and the archive a folded thread
     # continues. corteza runs the conversation; what becomes of it is
-    # cerebro's.
+    # cerebelo's.
     state <- tryCatch(
                       corteza::bot_run_init(system = mcfg$system,
             model = mcfg$model,
@@ -261,11 +261,11 @@ run <- function(instance_dir, tick_seconds = 30L,
             hooks = list(on_clear = segment_open,
                          thread_context = fold_lookup)),
                       error = function(e) {
-        message("cerebro: matrix init failed: ", conditionMessage(e))
+        message("cerebelo: matrix init failed: ", conditionMessage(e))
         NULL
     })
     if (!is.null(state)) {
-        message("cerebro: Matrix long-poll folded into the scheduler loop")
+        message("cerebelo: Matrix long-poll folded into the scheduler loop")
     }
     state
 }
@@ -275,7 +275,7 @@ run <- function(instance_dir, tick_seconds = 30L,
 #' Invoked by \code{\link{run}}; exported for tests and ad-hoc use. Each
 #' \code{routines:} entry must have \code{name}, \code{schedule}, and a
 #' \code{capability} naming one of the registered builders,
-#' \code{names(cerebro:::.capabilities())}; a missing or unknown
+#' \code{names(cerebelo:::.capabilities())}; a missing or unknown
 #' capability is an error that lists the valid names. Entries with
 #' \code{enabled: false} are skipped, as are entries their builder
 #' declines with a message (an unknown briefing key, a shell routine
@@ -295,7 +295,7 @@ register_from_config <- function(instance_dir = NULL) {
     n <- 0L
     for (r in routines) {
         if (isFALSE(r$enabled)) {
-            message("cerebro: routine ", r$name %||% "(unnamed)",
+            message("cerebelo: routine ", r$name %||% "(unnamed)",
                     " disabled; skipping")
             next
         }
@@ -325,11 +325,11 @@ register_from_config <- function(instance_dir = NULL) {
         }
     }
     if (!is.finite(value) || value != floor(value)) {
-        stop("cerebro: ", name, " must be an integer", call. = FALSE)
+        stop("cerebelo: ", name, " must be an integer", call. = FALSE)
     }
     out <- as.integer(value)
     if (!is.null(min) && out < min) {
-        stop("cerebro: ", name, " must be at least ", min, call. = FALSE)
+        stop("cerebelo: ", name, " must be at least ", min, call. = FALSE)
     }
     out
 }
@@ -350,13 +350,13 @@ register_from_config <- function(instance_dir = NULL) {
         }
     }
     if (!is.finite(value)) {
-        stop("cerebro: ", name, " must be a number", call. = FALSE)
+        stop("cerebelo: ", name, " must be a number", call. = FALSE)
     }
     if (!is.null(min) && value < min) {
-        stop("cerebro: ", name, " must be at least ", min, call. = FALSE)
+        stop("cerebelo: ", name, " must be at least ", min, call. = FALSE)
     }
     if (!is.null(max) && value > max) {
-        stop("cerebro: ", name, " must be at most ", max, call. = FALSE)
+        stop("cerebelo: ", name, " must be at most ", max, call. = FALSE)
     }
     value
 }

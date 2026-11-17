@@ -1,6 +1,6 @@
 library(tinytest)
 
-idir <- tempfile("cerebro-prepared-")
+idir <- tempfile("cerebelo-prepared-")
 dir.create(idir)
 
 date <- as.Date("2026-06-24")
@@ -18,10 +18,10 @@ state <- list(
         )
     )
 )
-cerebro::write_instance_state(state, idir)
+cerebelo::write_instance_state(state, idir)
 
 out <- capture.output(
-    text <- cerebro::send_prepared_briefing(
+    text <- cerebelo::send_prepared_briefing(
         "gold", room = "To Do", dry_run = TRUE,
         instance_dir = idir, date = date
     )
@@ -29,14 +29,14 @@ out <- capture.output(
 expect_identical(text, "Three ideas and a fortune")
 expect_true(any(grepl("Three ideas and a fortune", out, fixed = TRUE)))
 
-stale <- cerebro::send_prepared_briefing(
+stale <- cerebelo::send_prepared_briefing(
     "stale", room = "To Do", dry_run = TRUE,
     instance_dir = idir, date = date
 )
 expect_null(stale)
 
 # An existing same-day draft skips preparation before invoking the model.
-skipped <- cerebro::prepare_briefing(
+skipped <- cerebelo::prepare_briefing(
     "gold", system_prompt = "unused", model = "m", instance_dir = idir,
     date = date
 )
@@ -48,12 +48,12 @@ briefings <- list(gold = list(
     model = "m",
     sources = list()
 ))
-prepare_fn <- cerebro:::.build_routine_fn(
+prepare_fn <- cerebelo:::.build_routine_fn(
     list(name = "gold-prepare", capability = "briefing_prepare",
          briefing = "gold"),
     briefings, list(), idir
 )
-send_fn <- cerebro:::.build_routine_fn(
+send_fn <- cerebelo:::.build_routine_fn(
     list(name = "gold-send", capability = "briefing_send",
          briefing = "gold"),
     briefings, list(), idir

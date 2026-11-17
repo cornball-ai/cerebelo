@@ -247,8 +247,8 @@
 }
 
 .thread_append_page <- function(path, title, tags, body, marker, vault, date) {
-    start <- paste0("<!-- cerebro:conversation:", marker, ":start -->")
-    end <- paste0("<!-- cerebro:conversation:", marker, ":end -->")
+    start <- paste0("<!-- cerebelo:conversation:", marker, ":start -->")
+    end <- paste0("<!-- cerebelo:conversation:", marker, ":end -->")
     block <- c(start,
                paste0("## Conversation update \u2014 ", as.character(as.Date(date))),
                "", body, end)

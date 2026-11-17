@@ -1,7 +1,7 @@
 % tinyrox says don't edit this manually, but it can't stop you!
 \name{instantiate_agent}
 \alias{instantiate_agent}
-\title{Create or activate a named cerebro agent instance}
+\title{Create or activate a named cerebelo agent instance}
 \usage{
 instantiate_agent(name, root = "~", create = TRUE, set_active = TRUE)
 }
@@ -13,7 +13,7 @@ instantiate_agent(name, root = "~", create = TRUE, set_active = TRUE)
 \item{create}{Logical. Create the standard directories.}
 
 \item{set_active}{Logical. Set option/env so this becomes the active
-cerebro instance for the current R process.}
+cerebelo instance for the current R process.}
 }
 \value{
 Named list from \code{\link{agent_paths}}.

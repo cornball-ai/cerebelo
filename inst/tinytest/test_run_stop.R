@@ -8,13 +8,13 @@ library(tinytest)
 # handler uninstalled, so a real one would kill a test session run under
 # `r`, which is the documented local workflow.
 local({
-    inst <- tempfile("cerebro-stop-")
+    inst <- tempfile("cerebelo-stop-")
     dir.create(inst)
-    tick_orig <- get("tick_routines", envir = asNamespace("cerebro"))
-    op <- options(cerebro.instance_dir = getOption("cerebro.instance_dir"))
+    tick_orig <- get("tick_routines", envir = asNamespace("cerebelo"))
+    op <- options(cerebelo.instance_dir = getOption("cerebelo.instance_dir"))
     env_orig <- Sys.getenv("CEREBRO_INSTANCE_DIR", unset = NA)
     on.exit({
-        assignInNamespace("tick_routines", tick_orig, "cerebro")
+        assignInNamespace("tick_routines", tick_orig, "cerebelo")
         options(op)
         if (is.na(env_orig)) {
             Sys.unsetenv("CEREBRO_INSTANCE_DIR")
@@ -30,12 +30,12 @@ local({
         signalCondition(structure(list(message = "stop", call = NULL),
                                   class = c("interrupt", "condition")))
         invisible(NULL)
-    }, "cerebro")
+    }, "cerebelo")
 
     msgs <- character()
     started <- proc.time()[["elapsed"]]
     got <- withCallingHandlers(
-        cerebro::run(inst, tick_seconds = 30L, state_path = NULL,
+        cerebelo::run(inst, tick_seconds = 30L, state_path = NULL,
                      matrix = FALSE, renviron = NULL),
         message = function(m) {
             msgs <<- c(msgs, conditionMessage(m))

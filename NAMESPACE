@@ -45,7 +45,7 @@ export(update_instance_state)
 export(vault_check)
 export(write_instance_state)
 
-S3method(print,cerebro_vault_check)
+S3method(print,cerebelo_vault_check)
 
 importFrom(chat.api,chat_send)
 importFrom(corteza,bot_run_init)

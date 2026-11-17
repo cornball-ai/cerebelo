@@ -1,7 +1,7 @@
 library(tinytest)
 
-ps <- cerebro:::parse_schedule
-nf <- cerebro:::next_fire
+ps <- cerebelo:::parse_schedule
+nf <- cerebelo:::next_fire
 
 # parse_schedule: hourly
 expect_equal(ps("hourly"), list(type = "hourly"))

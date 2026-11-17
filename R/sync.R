@@ -47,7 +47,7 @@ sync_todo <- function(name = "sync", source_repo = NULL, source_root,
         src_file <- .sync_week_file(source_root, date)
         tgt_file <- .sync_week_file(target_root, date)
         if (is.null(src_file) || is.null(tgt_file)) {
-            message("cerebro: sync \u2014 missing week file (source found: ",
+            message("cerebelo: sync \u2014 missing week file (source found: ",
                     !is.null(src_file), ", target found: ",
                     !is.null(tgt_file), "); skipping")
             return(invisible(NULL))
@@ -75,14 +75,14 @@ sync_todo <- function(name = "sync", source_repo = NULL, source_root,
         }
 
         if (!length(plan$added) && !length(plan$restatused)) {
-            message("cerebro: sync \u2014 already in step with ", basename(src_file))
+            message("cerebelo: sync \u2014 already in step with ", basename(src_file))
             return(invisible(plan))
         }
 
         hacer::mirror_subtree(src_file, tgt_file, source_path, target_path,
                               period = period, conflict = "source",
                               preview = FALSE)
-        message(sprintf("cerebro: sync wrote %d add / %d restatus to %s",
+        message(sprintf("cerebelo: sync wrote %d add / %d restatus to %s",
                         length(plan$added), length(plan$restatused),
                         basename(tgt_file)))
         if (!is.null(room)) {
@@ -107,7 +107,7 @@ sync_todo <- function(name = "sync", source_repo = NULL, source_root,
     source_path <- r$source_path %||% NULL
     target_path <- r$target_path %||% NULL
     if (is.null(source_path) || is.null(target_path)) {
-        stop("cerebro: sync routine ", r$name,
+        stop("cerebelo: sync routine ", r$name,
              " requires source_path and target_path", call. = FALSE)
     }
     source_repo <- r$source_repo %||% NULL
@@ -151,7 +151,7 @@ sync_todo <- function(name = "sync", source_repo = NULL, source_root,
 .sync_git_pull <- function(repo) {
     repo <- path.expand(repo)
     if (!dir.exists(file.path(repo, ".git"))) {
-        message("cerebro: sync \u2014 ", repo,
+        message("cerebelo: sync \u2014 ", repo,
                 " is not a git repo; skipping pull")
         return(invisible(FALSE))
     }
@@ -164,7 +164,7 @@ sync_todo <- function(name = "sync", source_repo = NULL, source_root,
     st <- attr(out, "status")
     ok <- is.null(st) || identical(st, 0L)
     if (!ok) {
-        message("cerebro: sync \u2014 git pull --ff-only on ", repo,
+        message("cerebelo: sync \u2014 git pull --ff-only on ", repo,
                 " skipped: ", paste(out, collapse = " "))
     }
     invisible(ok)

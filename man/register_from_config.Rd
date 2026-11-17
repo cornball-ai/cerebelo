@@ -15,7 +15,7 @@ Integer count of routines registered, invisibly.
 Invoked by \code{\link{run}}; exported for tests and ad-hoc use. Each
 \code{routines:} entry must have \code{name}, \code{schedule}, and a
 \code{capability} naming one of the registered builders,
-\code{names(cerebro:::.capabilities())}; a missing or unknown
+\code{names(cerebelo:::.capabilities())}; a missing or unknown
 capability is an error that lists the valid names. Entries with
 \code{enabled: false} are skipped, as are entries their builder
 declines with a message (an unknown briefing key, a shell routine

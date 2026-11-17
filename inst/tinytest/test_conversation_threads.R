@@ -1,6 +1,6 @@
 library(tinytest)
 
-window <- cerebro:::.local_date_window(as.Date("2026-06-24"), 1L,
+window <- cerebelo:::.local_date_window(as.Date("2026-06-24"), 1L,
                                        "America/Chicago")
 expect_equal(
              format(window$end, tz = "America/Chicago", format = "%Y-%m-%d %H:%M:%S"),
@@ -13,15 +13,15 @@ expect_equal(as.numeric(window$end),
 # without R complaining about inconsistent zone names: it names none,
 # and it is still the right instant.
 local({
-    at <- cerebro:::.chat_parse_time("2026-06-25T04:59:59Z")
+    at <- cerebelo:::.chat_parse_time("2026-06-25T04:59:59Z")
     expect_null(attr(at, "tzone"))
     expect_equal(as.numeric(at), as.numeric(window$end) - 1)
     expect_silent(at < window$end)
     expect_true(at < window$end && at >= window$cutoff)
-    expect_true(is.na(cerebro:::.chat_parse_time("")))
+    expect_true(is.na(cerebelo:::.chat_parse_time("")))
 })
 
-root <- file.path(tempdir(), paste0("cerebro-chat-", Sys.getpid(), "-",
+root <- file.path(tempdir(), paste0("cerebelo-chat-", Sys.getpid(), "-",
                                     sample.int(1e6, 1L)))
 dir.create(root, recursive = TRUE)
 
@@ -88,7 +88,7 @@ ctx$instance_dir <- root
 params <- list(include = c("matrix", "claude", "codex"), matrix_root = matrix,
                claude_root = claude, codex_root = codex, days = 1L,
                max_sessions = 9L, max_per_source = 4L, max_chars = 12000L)
-all <- cerebro::briefing_source_chat_recent("daily", ctx, params)
+all <- cerebelo::briefing_source_chat_recent("daily", ctx, params)
 text <- all[["RECENT CHAT EVIDENCE"]]
 expect_true(grepl("acoustic panels", text, fixed = TRUE))
 expect_true(grepl("parser package-owned", text, fixed = TRUE))
@@ -96,7 +96,7 @@ expect_true(grepl("Vacation notes", text, fixed = TRUE))
 expect_false(grepl("Vault check found", text, fixed = TRUE))
 expect_false(grepl("must not appear", text, fixed = TRUE))
 expect_false(grepl("generated", text, fixed = TRUE))
-parse_matrix <- getFromNamespace(".chat_parse_matrix", "cerebro")
+parse_matrix <- getFromNamespace(".chat_parse_matrix", "cerebelo")
 home_parsed <- parse_matrix(file.path(matrix, "home.md"),
                             Sys.time() - 3600, Sys.time() + 3600)
 expect_equal(home_parsed$label, "Home")
@@ -105,7 +105,7 @@ expect_equal(home_parsed$room_id, "!home:test")
 general_ctx <- new.env(parent = emptyenv())
 general_ctx$date <- Sys.Date()
 general_ctx$instance_dir <- root
-general <- cerebro::briefing_source_chat_recent("daily", general_ctx,
+general <- cerebelo::briefing_source_chat_recent("daily", general_ctx,
     c(params, list(scope = "general")))[["RECENT CHAT EVIDENCE"]]
 expect_true(grepl("acoustic panels", general, fixed = TRUE))
 expect_true(grepl("Vacation notes", general, fixed = TRUE))
@@ -115,13 +115,13 @@ expect_false(grepl("Matrix repo notes", general, fixed = TRUE))
 repo_ctx <- new.env(parent = emptyenv())
 repo_ctx$date <- Sys.Date()
 repo_ctx$instance_dir <- root
-repo_only <- cerebro::briefing_source_chat_recent("daily", repo_ctx,
+repo_only <- cerebelo::briefing_source_chat_recent("daily", repo_ctx,
     c(params, list(scope = "repo")))[["RECENT CHAT EVIDENCE"]]
 expect_true(grepl("parser package-owned", repo_only, fixed = TRUE))
 expect_true(grepl("Matrix repo notes", repo_only, fixed = TRUE))
 expect_false(grepl("acoustic panels", repo_only, fixed = TRUE))
 
-route_fn <- getFromNamespace(".thread_route_general", "cerebro")
+route_fn <- getFromNamespace(".thread_route_general", "cerebelo")
 records <- list(list(link = "raw/chats/home", body = "home evidence"))
 candidates <- list(
                    pages = list(list(path = "wiki/home-improvement.md",
@@ -145,7 +145,7 @@ expect_equal(route$confidence, 0.93)
 
 vault <- file.path(root, "vault")
 pensar::init_vault(vault, rproj = FALSE, agent_instructions = FALSE)
-append_fn <- getFromNamespace(".thread_append_page", "cerebro")
+append_fn <- getFromNamespace(".thread_append_page", "cerebelo")
 page <- file.path(vault, "wiki", "home-improvement.md")
 append_fn(page, "Home Improvement", c("conversation"),
           "A durable observation. [[raw/chats/home]]", "abc", vault,
@@ -155,7 +155,7 @@ append_fn(page, "Home Improvement", c("conversation"),
           "A duplicate. [[raw/chats/home]]", "abc", vault,
           as.Date("2026-06-24"))
 page_text <- paste(readLines(page, warn = FALSE), collapse = "\n")
-matches <- gregexpr("cerebro:conversation:abc:start", page_text, fixed = TRUE)[[1L]]
+matches <- gregexpr("cerebelo:conversation:abc:start", page_text, fixed = TRUE)[[1L]]
 expect_equal(sum(matches > 0L), 1L)
 expect_true(grepl("User-owned tail", page_text, fixed = TRUE))
 
@@ -170,7 +170,7 @@ Sys.setenv(CORTEZA_MATRIX_CONFIG = cfg)
 if (requireNamespace("mx.client", quietly = TRUE)) {
     # The environment names the config when no path is given, exactly
     # as corteza resolves its own.
-    read_cfg <- getFromNamespace(".chat_config", "cerebro")
+    read_cfg <- getFromNamespace(".chat_config", "cerebelo")
     expect_equal(read_cfg()$user_id, "@mybot:example.invalid")
     expect_equal(read_cfg(cfg)$room_id, "!default:example.invalid")
 }
@@ -180,8 +180,8 @@ if (is.na(old)) {
 } else {
     Sys.setenv(CORTEZA_MATRIX_CONFIG = old)
 }
-repo_defaults <- formals(cerebro::sync_repo_conversation_threads)
-general_defaults <- formals(cerebro::sync_general_conversation_threads)
+repo_defaults <- formals(cerebelo::sync_repo_conversation_threads)
+general_defaults <- formals(cerebelo::sync_general_conversation_threads)
 for (defaults in list(repo_defaults, general_defaults)) {
     expect_null(defaults$vault)
     expect_null(defaults$instance_dir)
@@ -194,9 +194,9 @@ for (defaults in list(repo_defaults, general_defaults)) {
     expect_false(grepl("troy|tiny|cornelius", text))
 }
 
-state_writer <- getFromNamespace(".thread_write_conversation_state", "cerebro")
-read_state <- getFromNamespace("read_instance_state", "cerebro")
-write_state <- getFromNamespace("write_instance_state", "cerebro")
+state_writer <- getFromNamespace(".thread_write_conversation_state", "cerebelo")
+read_state <- getFromNamespace("read_instance_state", "cerebelo")
+write_state <- getFromNamespace("write_instance_state", "cerebelo")
 state <- read_state(root)
 state$matrix_rooms <- list(Cooking = "!room:test")
 write_state(state, root)
@@ -208,15 +208,15 @@ merged <- read_state(root)
 expect_equal(merged$matrix_rooms$Cooking, "!room:test")
 expect_equal(merged$conversation_threads$general_sources$abc$raw_hash, "raw")
 
-repo_sync <- try(cerebro::sync_repo_conversation_threads(vault = vault,
+repo_sync <- try(cerebelo::sync_repo_conversation_threads(vault = vault,
         instance_dir = root, days = 0L, max_sessions = 0L, dry_run = TRUE,
         model = "m"), silent = TRUE)
 expect_false(inherits(repo_sync, "try-error"))
 
-# No model and no generate_fn stops before any work: cerebro picks no
+# No model and no generate_fn stops before any work: cerebelo picks no
 # default model.
-for (sync_fn in list(cerebro::sync_repo_conversation_threads,
-                     cerebro::sync_general_conversation_threads)) {
+for (sync_fn in list(cerebelo::sync_repo_conversation_threads,
+                     cerebelo::sync_general_conversation_threads)) {
     expect_error(sync_fn(vault = vault, instance_dir = root, days = 0L,
                          max_sessions = 0L, dry_run = TRUE),
                  "`model` is required")
@@ -224,7 +224,7 @@ for (sync_fn in list(cerebro::sync_repo_conversation_threads,
 
 # Repo rooms are titled with the shell-style repo path, not the prefixed
 # "<instance> · <repo>" form (dry-run wiring through the real sync).
-collect_orig <- getFromNamespace(".chat_collect", "cerebro")
+collect_orig <- getFromNamespace(".chat_collect", "cerebelo")
 fake_session <- list(source = "claude", path = "fixture.jsonl",
                      label = "fixture", cwd = repo,
                      turns = list(
@@ -232,7 +232,7 @@ fake_session <- list(source = "claude", path = "fixture.jsonl",
                                   list(role = "assistant", text = "Recorded.")
                      ))
 assignInNamespace(".chat_collect", function(ctx, params) list(fake_session),
-                  ns = "cerebro")
+                  ns = "cerebelo")
 gen <- function(prompt, system, model, provider, max_tokens) {
     links <- regmatches(prompt,
                         gregexpr("\\[\\[raw/[^]]+\\]\\]", prompt))[[1L]]
@@ -241,7 +241,7 @@ gen <- function(prompt, system, model, provider, max_tokens) {
 # A loopback transport with no rooms: every lookup misses, so the dry
 # run reports the room it would create.
 msgs <- capture.output(
-    cerebro::sync_repo_conversation_threads(vault = vault, instance_dir = root,
+    cerebelo::sync_repo_conversation_threads(vault = vault, instance_dir = root,
         dry_run = TRUE, client = chat.api::chat_loopback(),
         generate_fn = gen),
     type = "message"
@@ -250,17 +250,17 @@ line <- msgs[grepl("would create Matrix room", msgs, fixed = TRUE)]
 expect_equal(length(line), 1L)
 expect_true(grepl(basename(repo), line, fixed = TRUE))
 expect_false(grepl(" · ", line, fixed = TRUE))
-assignInNamespace(".chat_collect", collect_orig, ns = "cerebro")
+assignInNamespace(".chat_collect", collect_orig, ns = "cerebelo")
 
 unlink(root, recursive = TRUE)
 
 # Archives with no frontmatter or room metadata keep the filename label.
-bare_dir <- file.path(tempdir(), paste0("cerebro-bare-", Sys.getpid()))
+bare_dir <- file.path(tempdir(), paste0("cerebelo-bare-", Sys.getpid()))
 dir.create(bare_dir, showWarnings = FALSE)
 writeLines(c("## user", "", "Just a bare note.", "",
              "## assistant", "", "Noted."),
            file.path(bare_dir, "bare-note.md"))
-bare_parsed <- getFromNamespace(".chat_parse_matrix", "cerebro")(
+bare_parsed <- getFromNamespace(".chat_parse_matrix", "cerebelo")(
     file.path(bare_dir, "bare-note.md"),
     Sys.time() - 3600, Sys.time() + 3600)
 expect_equal(bare_parsed$label, "bare-note")
@@ -272,13 +272,13 @@ unlink(bare_dir, recursive = TRUE)
 # without this a summary posted into one becomes input for the next run,
 # which summarizes it and posts again.
 local({
-    is_gen <- cerebro:::.chat_is_generated_summary
+    is_gen <- cerebelo:::.chat_is_generated_summary
 
     # Our own summaries, as they appear in archives from both send sites.
     expect_true(is_gen("assistant",
                        "Conversation summary filed in **Coffee brewing**\n\nbody"))
     expect_true(is_gen("assistant",
-                       "Conversation summary filed in **cerebro**\n\n## notes"))
+                       "Conversation summary filed in **cerebelo**\n\n## notes"))
     # Leading whitespace from the archive's turn splitting still matches.
     expect_true(is_gen("assistant",
                        "\n  Conversation summary filed in **X**\n\nbody"))
@@ -312,7 +312,7 @@ local({
                  "## assistant", "",
                  "Conversation summary filed in **Coffee brewing**", ""),
                self_talk)
-    parsed <- cerebro:::.chat_parse_matrix(self_talk, Sys.time() - 86400,
+    parsed <- cerebelo:::.chat_parse_matrix(self_talk, Sys.time() - 86400,
                                            Sys.time() + 86400)
     expect_true(is.null(parsed) || length(parsed$turns) == 0L)
 
@@ -328,7 +328,7 @@ local({
                  "## assistant", "",
                  "It gives you flow control the drip assist cannot.", ""),
                mixed)
-    got <- cerebro:::.chat_parse_matrix(mixed, Sys.time() - 86400,
+    got <- cerebelo:::.chat_parse_matrix(mixed, Sys.time() - 86400,
                                         Sys.time() + 86400)
     expect_equal(length(got$turns), 2L)
     roles <- vapply(got$turns, `[[`, character(1L), "role")
@@ -342,13 +342,13 @@ local({
 # parser. Both derive from one literal, so a wording edit that missed
 # either side fails here rather than silently restarting the loop.
 local({
-    msg <- cerebro:::.thread_summary_message("Coffee brewing", "## notes\n\nbody")
-    expect_true(cerebro:::.chat_is_generated_summary("assistant", msg))
+    msg <- cerebelo:::.thread_summary_message("Coffee brewing", "## notes\n\nbody")
+    expect_true(cerebelo:::.chat_is_generated_summary("assistant", msg))
     # The same text from a person is still a real turn.
-    expect_false(cerebro:::.chat_is_generated_summary("user", msg))
+    expect_false(cerebelo:::.chat_is_generated_summary("user", msg))
     # And it survives the archive's turn splitting, which leaves the
     # leading newline the parser trims.
-    expect_true(cerebro:::.chat_is_generated_summary("assistant",
+    expect_true(cerebelo:::.chat_is_generated_summary("assistant",
                                                      paste0("\n", msg)))
 })
 
@@ -377,34 +377,34 @@ local({
 
     # Path and date are excluded from identity on purpose: that
     # variation is what made copies look distinct.
-    expect_identical(cerebro:::.thread_session_fingerprint(a),
-                     cerebro:::.thread_session_fingerprint(b))
-    expect_false(identical(cerebro:::.thread_session_fingerprint(a),
-                           cerebro:::.thread_session_fingerprint(c)))
+    expect_identical(cerebelo:::.thread_session_fingerprint(a),
+                     cerebelo:::.thread_session_fingerprint(b))
+    expect_false(identical(cerebelo:::.thread_session_fingerprint(a),
+                           cerebelo:::.thread_session_fingerprint(c)))
 
-    got <- suppressMessages(cerebro:::.thread_dedupe_sessions(list(a, b, c)))
+    got <- suppressMessages(cerebelo:::.thread_dedupe_sessions(list(a, b, c)))
     expect_equal(length(got), 2L)
     # First occurrence wins, so the earliest copy is the one cited.
     expect_equal(got[[1L]]$path, "/v/2026-07-01-room.md")
     expect_equal(got[[2L]]$path, "/v/2026-07-27-other.md")
 
     # It reports what it ignored rather than dropping silently.
-    expect_message(cerebro:::.thread_dedupe_sessions(list(a, b)),
+    expect_message(cerebelo:::.thread_dedupe_sessions(list(a, b)),
                    pattern = "1 duplicate")
 
     # Order within a conversation is part of its identity.
     swapped <- mk("/v/x.md",
                   list("assistant", "slowly"),
                   list("user", "how do I brew this"))
-    expect_false(identical(cerebro:::.thread_session_fingerprint(a),
-                           cerebro:::.thread_session_fingerprint(swapped)))
+    expect_false(identical(cerebelo:::.thread_session_fingerprint(a),
+                           cerebelo:::.thread_session_fingerprint(swapped)))
 
     # Degenerate inputs pass straight through.
-    expect_equal(length(cerebro:::.thread_dedupe_sessions(list())), 0L)
-    expect_equal(length(cerebro:::.thread_dedupe_sessions(list(a))), 1L)
+    expect_equal(length(cerebelo:::.thread_dedupe_sessions(list())), 0L)
+    expect_equal(length(cerebelo:::.thread_dedupe_sessions(list(a))), 1L)
     # A conversation with no turns is still a valid, stable identity.
     empty <- list(label = "e", path = "/v/e.md", turns = list())
-    expect_true(nzchar(cerebro:::.thread_session_fingerprint(empty)))
+    expect_true(nzchar(cerebelo:::.thread_session_fingerprint(empty)))
 })
 
 # Regressions from review of the deduplication change.
@@ -422,30 +422,30 @@ local({
     # was not the full content it claimed to be.
     a <- mk("/v/a.md", list("user", "one\n\ntwo"))
     b <- mk("/v/b.md", list("user", "one\ntwo"))
-    expect_false(identical(cerebro:::.thread_session_fingerprint(a),
-                           cerebro:::.thread_session_fingerprint(b)))
+    expect_false(identical(cerebelo:::.thread_session_fingerprint(a),
+                           cerebelo:::.thread_session_fingerprint(b)))
     lead <- mk("/v/c.md", list("user", "  padded"))
-    expect_false(identical(cerebro:::.thread_session_fingerprint(lead),
-                           cerebro:::.thread_session_fingerprint(
+    expect_false(identical(cerebelo:::.thread_session_fingerprint(lead),
+                           cerebelo:::.thread_session_fingerprint(
                                mk("/v/d.md", list("user", "padded")))))
 
     # Identical short exchanges in different rooms are different
     # conversations, not duplicates.
     r1 <- mk("/v/r1.md", list("user", "ok"), room = "!one:ex")
     r2 <- mk("/v/r2.md", list("user", "ok"), room = "!two:ex")
-    expect_false(identical(cerebro:::.thread_session_fingerprint(r1),
-                           cerebro:::.thread_session_fingerprint(r2)))
+    expect_false(identical(cerebelo:::.thread_session_fingerprint(r1),
+                           cerebelo:::.thread_session_fingerprint(r2)))
     # The same room, archived twice, is one conversation.
     r1b <- mk("/v/r1-later.md", list("user", "ok"), room = "!one:ex")
-    expect_identical(cerebro:::.thread_session_fingerprint(r1),
-                     cerebro:::.thread_session_fingerprint(r1b))
+    expect_identical(cerebelo:::.thread_session_fingerprint(r1),
+                     cerebelo:::.thread_session_fingerprint(r1b))
 
     # Sources without a room namespace fall back explicitly rather than
     # silently sharing one.
     cl <- mk("/v/x.jsonl", list("user", "ok"), source = "claude")
     cx <- mk("/v/y.jsonl", list("user", "ok"), source = "codex")
-    expect_false(identical(cerebro:::.thread_session_fingerprint(cl),
-                           cerebro:::.thread_session_fingerprint(cx)))
+    expect_false(identical(cerebelo:::.thread_session_fingerprint(cl),
+                           cerebelo:::.thread_session_fingerprint(cx)))
 })
 
 # The collection budget counts distinct conversations: duplicates must
@@ -474,7 +474,7 @@ local({
     ctx <- new.env(parent = emptyenv())
     ctx$date <- Sys.Date()
     ctx$instance_dir <- d
-    got <- cerebro:::.chat_collect(ctx, list(
+    got <- cerebelo:::.chat_collect(ctx, list(
         include = "matrix", matrix_root = file.path(d, "matrix"),
         days = 3650L, max_sessions = 4L, max_per_source = 4L))
 
@@ -508,16 +508,16 @@ if (requireNamespace("pensar", quietly = TRUE)) {
                               list(role = "assistant", text = "durable answer")))
         }
 
-        first <- cerebro:::.thread_prepare_records(list(mk("/v/day1.md")), v,
+        first <- cerebelo:::.thread_prepare_records(list(mk("/v/day1.md")), v,
                                                    list())
         expect_equal(length(first$records), 1L)
         # A record stays pending until the run that summarized it says
         # so, which is what a completed pass does.
-        done <- cerebro:::.thread_mark_summarized(first$state, first$records)
+        done <- cerebelo:::.thread_mark_summarized(first$state, first$records)
 
         # Same conversation, new archive path, carrying forward the state
         # the first run wrote. Nothing new to summarize.
-        again <- cerebro:::.thread_prepare_records(list(mk("/v/day9.md")), v,
+        again <- cerebelo:::.thread_prepare_records(list(mk("/v/day9.md")), v,
                                                    done)
         expect_equal(length(again$records), 0L)
 
@@ -525,7 +525,7 @@ if (requireNamespace("pensar", quietly = TRUE)) {
         other <- list(label = "room", path = "/v/day9b.md", source = "matrix",
                       room_id = "!persist:ex", time = Sys.time(),
                       turns = list(list(role = "user", text = "new question")))
-        third <- cerebro:::.thread_prepare_records(list(other), v, again$state)
+        third <- cerebelo:::.thread_prepare_records(list(other), v, again$state)
         expect_equal(length(third$records), 1L)
     })
 }
@@ -554,7 +554,7 @@ local({
     ctx <- new.env(parent = emptyenv())
     ctx$date <- Sys.Date()
     ctx$instance_dir <- d
-    got <- suppressMessages(cerebro:::.chat_collect(ctx, list(
+    got <- suppressMessages(cerebelo:::.chat_collect(ctx, list(
         include = "matrix", matrix_root = file.path(d, "matrix"),
         days = 3650L, max_sessions = 4L, max_per_source = 4L)))
     expect_equal(length(got), 4L)
@@ -581,8 +581,8 @@ if (requireNamespace("pensar", quietly = TRUE)) {
                                list(role = "assistant", text = "old answer")))
 
         # Reconstruct state exactly as the old scheme wrote it.
-        turns <- cerebro:::.chat_select_turns(s$turns, 12L, TRUE)
-        body <- cerebro:::.thread_session_markdown(s, turns)
+        turns <- cerebelo:::.chat_select_turns(s$turns, 12L, TRUE)
+        body <- cerebelo:::.thread_session_markdown(s, turns)
         legacy_key <- digest::digest(paste(s$source, s$path, sep = "::"),
                                      algo = "sha1")
         # The raw evidence the old run wrote has to actually exist,
@@ -596,32 +596,32 @@ if (requireNamespace("pensar", quietly = TRUE)) {
             raw_hash = digest::digest(body, algo = "sha1"),
             raw_path = "raw/chats/old.md")
 
-        got <- cerebro:::.thread_prepare_records(list(s), v, old_state)
+        got <- cerebelo:::.thread_prepare_records(list(s), v, old_state)
         # Already summarized under the old scheme: nothing to redo.
         expect_equal(length(got$records), 0L)
         # ... and it is carried forward under the new identity, so the
         # next run does not consult the legacy entry again.
-        expect_true(cerebro:::.thread_session_fingerprint(s) %in%
+        expect_true(cerebelo:::.thread_session_fingerprint(s) %in%
                     names(got$state))
 
         # force = TRUE still reprocesses it. Migration used to return
         # early, skipping the force check, so an explicitly forced run
         # silently produced nothing for anything on legacy state.
-        forced <- cerebro:::.thread_prepare_records(list(s), v, old_state,
+        forced <- cerebelo:::.thread_prepare_records(list(s), v, old_state,
                                                      force = TRUE)
         expect_equal(length(forced$records), 1L)
         # It reuses the raw evidence the legacy entry already points at
         # rather than writing it again.
         expect_equal(forced$records[[1L]]$raw_path, "raw/chats/old.md")
         # ... and the migrated identity is still recorded.
-        expect_true(cerebro:::.thread_session_fingerprint(s) %in%
+        expect_true(cerebelo:::.thread_session_fingerprint(s) %in%
                     names(forced$state))
 
         # A conversation the old state never saw is still new.
         fresh <- s
         fresh$turns <- list(list(role = "user", text = "unseen"))
         expect_equal(length(
-            cerebro:::.thread_prepare_records(list(fresh), v, old_state)$records
+            cerebelo:::.thread_prepare_records(list(fresh), v, old_state)$records
         ), 1L)
     })
 }
@@ -634,8 +634,8 @@ local({
              turns = list(list(role = "user", text = "run the tests")))
     }
     expect_false(identical(
-        cerebro:::.thread_session_fingerprint(mk("alpha")),
-        cerebro:::.thread_session_fingerprint(mk("beta"))))
+        cerebelo:::.thread_session_fingerprint(mk("alpha")),
+        cerebelo:::.thread_session_fingerprint(mk("beta"))))
 })
 
 # Destination grouping: several conversations routed to one topic
@@ -655,14 +655,14 @@ local({
     # One source keeps its summary verbatim, so the common case is
     # unchanged by grouping.
     one <- list(mk("Coffee", "just the summary", "room a"))
-    expect_identical(cerebro:::.thread_group_body(one), "just the summary")
+    expect_identical(cerebelo:::.thread_group_body(one), "just the summary")
 
     # Several sources become sections, each attributed, in order.
     # Each summary carries its own citation, as the router is required
     # to produce, so duplication is observable.
     many <- list(mk("Coffee", "first summary [[raw/chats/a]]", "morning room"),
                  mk("Coffee", "second summary [[raw/chats/b]]", "evening room"))
-    body <- cerebro:::.thread_group_body(many)
+    body <- cerebelo:::.thread_group_body(many)
     n_hits <- function(pat, x) sum(gregexpr(pat, x, fixed = TRUE)[[1L]] > 0L)
     # Headings pair the readable label with a date: the label alone
     # repeats whenever one room contributes twice, which is common.
@@ -684,7 +684,7 @@ local({
 
     # A missing label degrades to the topic rather than erroring.
     unlabelled <- list(mk("Coffee", "a", NULL), mk("Coffee", "b", NULL))
-    expect_true(grepl("### Coffee", cerebro:::.thread_group_body(unlabelled),
+    expect_true(grepl("### Coffee", cerebelo:::.thread_group_body(unlabelled),
                       fixed = TRUE))
 
     # The marker covers the COMPLETE source set, in canonical order.
@@ -692,13 +692,13 @@ local({
     # source wrote nothing while those sources could still be marked
     # summarized.
     r <- function(h) list(hash = h)
-    m1 <- cerebro:::.thread_group_marker(list(r("a"), r("b")))
-    expect_false(identical(m1, cerebro:::.thread_group_marker(list(r("a")))))
+    m1 <- cerebelo:::.thread_group_marker(list(r("a"), r("b")))
+    expect_false(identical(m1, cerebelo:::.thread_group_marker(list(r("a")))))
     # Changing a NON-first contributor changes it.
-    expect_false(identical(m1, cerebro:::.thread_group_marker(
+    expect_false(identical(m1, cerebelo:::.thread_group_marker(
         list(r("a"), r("c")))))
     # Order of arrival does not.
-    expect_identical(m1, cerebro:::.thread_group_marker(list(r("b"), r("a"))))
+    expect_identical(m1, cerebelo:::.thread_group_marker(list(r("b"), r("a"))))
 
     # The Matrix message is a digest, not the concatenated body: with
     # many independently generated summaries the combination is
@@ -706,14 +706,14 @@ local({
     tv <- tempfile("gv-"); dir.create(file.path(tv, "wiki"), recursive = TRUE)
     on.exit(unlink(tv, recursive = TRUE), add = TRUE)
     records <- unlist(lapply(many, `[[`, "records"), recursive = FALSE)
-    msg <- cerebro:::.thread_update_message("Coffee", records,
+    msg <- cerebelo:::.thread_update_message("Coffee", records,
                                            file.path(tv, "wiki", "coffee.md"), tv)
     expect_true(grepl("2 conversations filed", msg, fixed = TRUE))
     expect_true(grepl("wiki/coffee", msg, fixed = TRUE))
     expect_false(grepl("first summary", msg, fixed = TRUE))
     # A single source is also a linked handoff. Full summaries stay on
     # the page so mixed-origin prose cannot leak into a filtered post.
-    single <- cerebro:::.thread_update_message("Coffee", one[[1L]]$records,
+    single <- cerebelo:::.thread_update_message("Coffee", one[[1L]]$records,
                                                file.path(tv, "wiki", "c.md"), tv)
     expect_true(grepl("1 conversation filed", single, fixed = TRUE))
     expect_true(grepl("[[raw/chats/x]]", single, fixed = TRUE))
@@ -765,7 +765,7 @@ if (requireNamespace("pensar", quietly = TRUE)) {
         msgs <- character()
         sent <- utils::capture.output(
             got <- withCallingHandlers(
-                cerebro::sync_general_conversation_threads(
+                cerebelo::sync_general_conversation_threads(
                     vault = v, instance_dir = inst,
                     matrix_roots = file.path(inst, "vault", "raw", "matrix"),
                     days = 30L, dry_run = TRUE, generate_fn = stub),
@@ -799,17 +799,17 @@ local({
     g <- function(room) list(route = list(room_id = room))
 
     # None known: the caller creates one.
-    expect_equal(length(cerebro:::.thread_group_room_ids(
+    expect_equal(length(cerebelo:::.thread_group_room_ids(
         list(g(""), g("")))), 0L)
     # One known, however many routes mention it.
-    expect_equal(cerebro:::.thread_group_room_ids(
+    expect_equal(cerebelo:::.thread_group_room_ids(
         list(g("!a:ex"), g(""), g("!a:ex"))), "!a:ex")
     # Two known is a disagreement, and both are reported so the caller
     # cannot silently take one.
-    expect_equal(length(cerebro:::.thread_group_room_ids(
+    expect_equal(length(cerebelo:::.thread_group_room_ids(
         list(g("!a:ex"), g("!b:ex")))), 2L)
     # A NULL room_id is absent, not an empty room id.
-    expect_equal(length(cerebro:::.thread_group_room_ids(
+    expect_equal(length(cerebelo:::.thread_group_room_ids(
         list(list(route = list())))), 0L)
 })
 
@@ -840,7 +840,7 @@ local({
     ctx$date <- Sys.Date()
     ctx$instance_dir <- d
     collect <- function(excl) {
-        suppressMessages(cerebro:::.chat_collect(ctx, list(
+        suppressMessages(cerebelo:::.chat_collect(ctx, list(
             include = "matrix", matrix_root = file.path(d, "matrix"),
             exclude_matrix_rooms = excl,
             days = 3650L, max_sessions = 10L, max_per_source = 10L)))
@@ -859,7 +859,7 @@ local({
     expect_equal(length(collect(c("!drop:ex", "!keep:ex"))), 0L)
     # Excluding everything still reports why nothing was collected: the
     # count used to be skipped by the empty-result return above it.
-    expect_message(cerebro:::.chat_collect(ctx, list(
+    expect_message(cerebelo:::.chat_collect(ctx, list(
         include = "matrix", matrix_root = file.path(d, "matrix"),
         exclude_matrix_rooms = c("!drop:ex", "!keep:ex"),
         days = 3650L, max_sessions = 10L, max_per_source = 10L)),
@@ -867,7 +867,7 @@ local({
     expect_equal(length(collect("!absent:ex")), 3L)
 
     # It reports what it suppressed rather than dropping silently.
-    expect_message(cerebro:::.chat_collect(ctx, list(
+    expect_message(cerebelo:::.chat_collect(ctx, list(
         include = "matrix", matrix_root = file.path(d, "matrix"),
         exclude_matrix_rooms = "!drop:ex",
         days = 3650L, max_sessions = 10L, max_per_source = 10L)),
@@ -875,7 +875,7 @@ local({
 
     # Exclusion happens before the budget is spent, so a suppressed room
     # cannot crowd out material the caller does want.
-    budgeted <- suppressMessages(cerebro:::.chat_collect(ctx, list(
+    budgeted <- suppressMessages(cerebelo:::.chat_collect(ctx, list(
         include = "matrix", matrix_root = file.path(d, "matrix"),
         exclude_matrix_rooms = "!drop:ex",
         days = 3650L, max_sessions = 1L, max_per_source = 1L)))

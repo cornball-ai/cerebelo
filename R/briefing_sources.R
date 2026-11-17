@@ -1,4 +1,4 @@
-# Source builders for cerebro::briefing(). Each source takes a `ctx`
+# Source builders for cerebelo::briefing(). Each source takes a `ctx`
 # environment (shared across sources within one briefing run) and a
 # `params` list (the source's config block from the YAML), and returns a
 # named list of section texts (label -> character) or NULL.
@@ -17,7 +17,7 @@
 #' @export
 #' Briefing source builders
 #'
-#' Build bounded evidence sections for cerebro briefings.
+#' Build bounded evidence sections for cerebelo briefings.
 #'
 #' @param mode Briefing mode such as daily or weekly.
 #' @param ctx Shared briefing context environment.
@@ -694,7 +694,7 @@ briefing_source_wiki <- function(mode, ctx, params) {
         idir <- tryCatch(instance_dir(NULL), error = function(e) NULL)
     }
     if (is.null(idir) || !nzchar(idir)) {
-        stop("source root not set and no active cerebro instance dir. ",
+        stop("source root not set and no active cerebelo instance dir. ",
              "Pass root/archive explicitly or set instance_dir.",
              call. = FALSE)
     }

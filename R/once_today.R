@@ -17,7 +17,7 @@ once_today <- function(key, fn, force = FALSE, instance_dir = NULL) {
     state <- read_instance_state(instance_dir)
     fired <- state$once_today[[key]]
     if (!isTRUE(force) && identical(fired, today)) {
-        message(sprintf("cerebro: %s already fired today; skipping", key))
+        message(sprintf("cerebelo: %s already fired today; skipping", key))
         return(invisible(NULL))
     }
     out <- fn()

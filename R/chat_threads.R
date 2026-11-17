@@ -133,11 +133,11 @@ briefing_source_chat_recent <- function(mode, ctx, params) {
     # was a duplicate or an excluded room collects nothing, and that is
     # exactly the case where saying why matters most.
     if (n_dupes > 0L) {
-        message(sprintf("cerebro: %d duplicate conversation source(s) ignored",
+        message(sprintf("cerebelo: %d duplicate conversation source(s) ignored",
                         n_dupes))
     }
     if (n_excluded > 0L) {
-        message(sprintf("cerebro: %d archive(s) from excluded room(s) ignored",
+        message(sprintf("cerebelo: %d archive(s) from excluded room(s) ignored",
                         n_excluded))
     }
     if (!length(sessions)) {

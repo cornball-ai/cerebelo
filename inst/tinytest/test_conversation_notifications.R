@@ -1,13 +1,13 @@
 # Exercise both real filers, including wiki writes and processed-source state.
 # Only collection, generation and Matrix access are replaced with offline fakes.
 local({
-    ns <- asNamespace("cerebro")
+    ns <- asNamespace("cerebelo")
     names <- c(".chat_collect", ".thread_topic_candidates", "ensure_matrix_room",
                ".stamp_topic_room", "matrix_send")
     originals <- lapply(names, get, envir = ns)
     on.exit({
         for (i in seq_along(names)) {
-            assignInNamespace(names[[i]], originals[[i]], "cerebro")
+            assignInNamespace(names[[i]], originals[[i]], "cerebelo")
         }
     }, add = TRUE)
     root <- tempfile("conversation-notifications-")
@@ -25,18 +25,18 @@ local({
     assignInNamespace(".chat_collect", function(...) {
         collected_n <<- collected_n + 1L
         collected
-    }, "cerebro")
+    }, "cerebelo")
     assignInNamespace(".thread_topic_candidates", function(...) {
         list(pages = list(list(path = "wiki/topic.md", title = "Topic")),
              rooms = list(list(room_id = destination, name = "Topic")))
-    }, "cerebro")
-    assignInNamespace("ensure_matrix_room", function(...) destination, "cerebro")
+    }, "cerebelo")
+    assignInNamespace("ensure_matrix_room", function(...) destination, "cerebelo")
     # Do not force the session argument: no network session is needed.
-    assignInNamespace(".stamp_topic_room", function(...) invisible(TRUE), "cerebro")
+    assignInNamespace(".stamp_topic_room", function(...) invisible(TRUE), "cerebelo")
     assignInNamespace("matrix_send", function(text, room, ...) {
         sent[[length(sent) + 1L]] <<- list(text = text, room = room)
         "$synthetic-event"
-    }, "cerebro")
+    }, "cerebelo")
 
     make_session <- function(label, origin, kind, thread = NULL) {
         list(source = if (is.null(origin)) "claude" else "matrix",
@@ -84,8 +84,8 @@ local({
             sent <- list()
             generated <- 0L
             collected_n <- 0L
-            sync <- if (kind == "repo") cerebro::sync_repo_conversation_threads else
-                cerebro::sync_general_conversation_threads
+            sync <- if (kind == "repo") cerebelo::sync_repo_conversation_threads else
+                cerebelo::sync_general_conversation_threads
             result <- sync(vault = vault, instance_dir = inst,
                            generate_fn = generate, dry_run = FALSE)
             expect_equal(collected_n, 1L)
@@ -98,7 +98,7 @@ local({
                                   page_text, fixed = TRUE))
             }
             state_key <- if (kind == "repo") "repo_sources" else "general_sources"
-            state <- cerebro::read_instance_state(inst)$conversation_threads[[state_key]]
+            state <- cerebelo::read_instance_state(inst)$conversation_threads[[state_key]]
             expect_equal(length(state), length(collected))
             expect_true(all(vapply(state, function(record) {
                 identical(record$raw_hash, record$summary_hash) &&
@@ -120,7 +120,7 @@ local({
                     expect_true(grepl("Full notes:", text, fixed = TRUE))
                 }
                 for (session in collected) {
-                    key <- cerebro:::.thread_session_fingerprint(session)
+                    key <- cerebelo:::.thread_session_fingerprint(session)
                     link <- sub("\\.md$", "", state[[key]]$raw_path)
                     expect_equal(grepl(paste0("[[", link, "]]"), text, fixed = TRUE),
                                  !identical(session$room_id, destination))

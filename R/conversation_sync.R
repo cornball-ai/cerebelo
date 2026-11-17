@@ -76,7 +76,7 @@
     }
     dropped <- sum(!keep)
     if (dropped > 0L) {
-        message(sprintf("cerebro: %d duplicate conversation source(s) ignored",
+        message(sprintf("cerebelo: %d duplicate conversation source(s) ignored",
                         dropped))
     }
     sessions[keep]
@@ -225,7 +225,7 @@ sync_repo_conversation_threads <- function(vault = NULL, instance_dir = NULL,
                                  algo = "sha1")
         title <- repo
         if (isTRUE(dry_run)) {
-            message("cerebro: would update ", page)
+            message("cerebelo: would update ", page)
         } else {
             .thread_append_page(page, title, c("repo", repo), summary,
                                 marker, vault, date)
@@ -418,7 +418,7 @@ sync_general_conversation_threads <- function(vault = NULL,
         }
 
         if (is.na(route$confidence) || route$confidence < threshold) {
-            message("cerebro: general conversation did not clear routing ",
+            message("cerebelo: general conversation did not clear routing ",
                     "threshold; leaving it as raw evidence")
             next
         }
@@ -426,7 +426,7 @@ sync_general_conversation_threads <- function(vault = NULL,
         # router can be entirely confident that there is no durable topic,
         # and that answer used to arrive as a topic name and become a room.
         if (!nzchar(route$topic)) {
-            message("cerebro: general conversation has no durable topic; ",
+            message("cerebelo: general conversation has no durable topic; ",
                     "leaving it as raw evidence")
             next
         }
@@ -439,7 +439,7 @@ sync_general_conversation_threads <- function(vault = NULL,
             substance <- .thread_session_substance(session)
             if (substance$turns < create_min_turns &&
                 substance$chars < create_min_chars) {
-                message("cerebro: general conversation is too slight to ",
+                message("cerebelo: general conversation is too slight to ",
                         "open a topic room (", substance$turns,
                         " user turn(s), ", substance$chars,
                         " character(s)); leaving it as raw evidence")
@@ -481,14 +481,14 @@ sync_general_conversation_threads <- function(vault = NULL,
         # update into whichever route happened to be first.
         known <- .thread_group_room_ids(group)
         if (length(known) > 1L) {
-            message("cerebro: conversations routed to ", basename(page),
+            message("cerebelo: conversations routed to ", basename(page),
                     " disagree on the destination room; leaving them as raw ",
                     "evidence rather than choosing one")
             next
         }
 
         if (isTRUE(dry_run)) {
-            message(sprintf("cerebro: would update %s from %d conversation(s)",
+            message(sprintf("cerebelo: would update %s from %d conversation(s)",
                             page, length(group)))
         } else {
             .thread_append_page(page, route$topic,

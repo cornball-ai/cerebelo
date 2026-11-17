@@ -17,7 +17,7 @@ seg <- function(id, idle_days, now) {
 # ---- Policy ----
 local({
     now <- as.POSIXct("2026-08-19 12:00:00", tz = "UTC")
-    fd <- function(segs, ...) cerebro:::.fold_due(segs, now = now, ...)
+    fd <- function(segs, ...) cerebelo:::.fold_due(segs, now = now, ...)
 
     expect_identical(fd(list(), fold_after_days = 7, max_segments = 12,
                         fold_min_days = 2), character())
@@ -113,13 +113,13 @@ local({
 
     # Classification is test_topics.R's subject; here it fails closed,
     # which is the Unsorted path this test pins.
-    orig_cls <- cerebro:::.classify_segment
+    orig_cls <- cerebelo:::.classify_segment
     assignInNamespace(".classify_segment", function(...) NULL,
-                      ns = "cerebro")
+                      ns = "cerebelo")
     on.exit(assignInNamespace(".classify_segment", orig_cls,
-                              ns = "cerebro"), add = TRUE)
+                              ns = "cerebelo"), add = TRUE)
 
-    res <- cerebro::sweep_segments(fold_after_days = 7, max_segments = 12,
+    res <- cerebelo::sweep_segments(fold_after_days = 7, max_segments = 12,
                                    fold_min_days = 2, model = "m",
                                    client = cl)
 
@@ -197,7 +197,7 @@ local({
             pages[[from %||% "start"]]
         })
 
-    ts <- cerebro:::.last_human_ts(cl, "!r:ex")
+    ts <- cerebelo:::.last_human_ts(cl, "!r:ex")
     expect_identical(as.numeric(ts) * 1000, 5000)
 
     # Cap hit with history remaining: the oldest scanned message is an
@@ -207,7 +207,7 @@ local({
         `start` = list(chunk = list(bot(9000), bot(8000)), end = "p2"),
         `p2` = list(chunk = list(bot(7000), bot(6000)), end = "p3")
     )
-    ts <- cerebro:::.last_human_ts(cl, "!r:ex",
+    ts <- cerebelo:::.last_human_ts(cl, "!r:ex",
                                    fallback = "2020-01-01T00:00:00Z",
                                    max_pages = 2L)
     expect_identical(as.numeric(ts) * 1000, 6000)
@@ -215,7 +215,7 @@ local({
     # Beginning reached with no human message: the state event's since
     # dates the room instead.
     pages <- list(`start` = list(chunk = list(bot(9000))))
-    ts <- cerebro:::.last_human_ts(cl, "!r:ex",
+    ts <- cerebelo:::.last_human_ts(cl, "!r:ex",
                                    fallback = "2026-08-01T00:00:00Z")
     expect_identical(format(ts, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
                      "2026-08-01T00:00:00Z")
@@ -246,7 +246,7 @@ local({
     seg <- list(id = "!seg1:ex",
                 state = list(state = "segment", segment_of = "!home:ex",
                              since = "2026-08-01T00:00:00Z"))
-    root <- cerebro:::.fold_one(cl, seg, "!topic:ex", "Unsorted")
+    root <- cerebelo:::.fold_one(cl, seg, "!topic:ex", "Unsorted")
     expect_identical(root, "$earlier")
     st <- writes[[match("ai.cornball.lifecycle",
                         vapply(writes, `[[`, character(1), "type"))]]
@@ -280,14 +280,14 @@ local({
         },
         .send = function(...) stop("must not send"),
         .state = function(...) stop("must not write"))
-    orig_cls <- cerebro:::.classify_segment
+    orig_cls <- cerebelo:::.classify_segment
     assignInNamespace(".classify_segment", function(...) NULL,
-                      ns = "cerebro")
+                      ns = "cerebelo")
     on.exit(assignInNamespace(".classify_segment", orig_cls,
-                              ns = "cerebro"), add = TRUE)
+                              ns = "cerebelo"), add = TRUE)
 
     expect_message(
-        res <- cerebro::sweep_segments(model = "m", client = cl,
+        res <- cerebelo::sweep_segments(model = "m", client = cl,
                                        dry_run = TRUE),
         "would fold")
     expect_identical(res$folded[[1L]]$id, "!seg1:ex")

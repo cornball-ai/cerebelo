@@ -43,7 +43,7 @@ segment_open <- function(chat, cfg, room_id, title, vault_ref = NULL) {
     }
     caps <- chat.api::chat_capabilities(chat)
     if (!isTRUE(caps$channel_create) || !isTRUE(caps$set_state)) {
-        message("cerebro: transport cannot create rooms or set state; ",
+        message("cerebelo: transport cannot create rooms or set state; ",
                 "no segment for ", room_id)
         return(invisible(NULL))
     }
@@ -73,7 +73,7 @@ segment_open <- function(chat, cfg, room_id, title, vault_ref = NULL) {
     # without a notification ping.
     tryCatch(chat.api::chat_send(chat, seg_id, body, kind = "notice"),
              error = function(e) {
-        message("cerebro: segment summary send failed: ", conditionMessage(e))
+        message("cerebelo: segment summary send failed: ", conditionMessage(e))
         NULL
     })
     content <- list(state = "segment", segment_of = room_id,
@@ -126,7 +126,7 @@ fold_lookup <- function(chat, room_id, thread_root) {
                    chat.api::chat_get_state(chat, room_id, .FOLD_TYPE,
             state_key = thread_root),
                    error = function(e) {
-        message("cerebro: could not read fold index: ", conditionMessage(e))
+        message("cerebelo: could not read fold index: ", conditionMessage(e))
         NULL
     })
     if (!is.list(st)) {

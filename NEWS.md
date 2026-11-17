@@ -1,4 +1,11 @@
-# cerebro 0.2.0.2
+# cerebelo 0.2.0.3
+
+- Renamed the package from cerebro to cerebelo. The API and behavior are
+  unchanged; callers move from `cerebro::` to `cerebelo::`. The routines
+  state directory moves to `R_user_dir("cerebelo")`, and
+  `options(cerebro.instance_dir)` becomes `cerebelo.instance_dir`.
+
+# cerebelo 0.2.0.2
 
 - `run()` returns on an interrupt instead of dying with the process. A
   container stops its PID 1 with a signal R has to handle itself:
@@ -9,7 +16,7 @@
   normally. That needs R's signal handlers, which `Rscript` installs
   and littler's `r` does not.
 
-# cerebro 0.2.0.1
+# cerebelo 0.2.0.1
 
 - `ensure_matrix_space()` lowers the power level for filing a room under
   a space it creates to the member level, so the other personas sharing
@@ -18,9 +25,9 @@
   other persona's filing failed and fell back to the per-room invite the
   space exists to remove.
 
-# cerebro 0.2.0
+# cerebelo 0.2.0
 
-- cerebro names no default LLM model. `briefing()`, `prepare_briefing()`,
+- cerebelo names no default LLM model. `briefing()`, `prepare_briefing()`,
   `reconcile_todo()` and `sweep_segments()` lose their
   `"claude-sonnet-4-6"` default and take a required `model`.
   `sync_repo_conversation_threads()` and
@@ -32,7 +39,7 @@
   a `lifecycle_sweep` routine without `model:` now stops `run()` with a
   message naming the entry. Provider defaults are unchanged.
 
-# cerebro 0.1.1.34
+# cerebelo 0.1.1.34
 
 - A vault or instance dir behind a symlink resolves the same way whether
   or not the path under it exists yet (`.resolve_path()`).
@@ -42,9 +49,9 @@
   symlinked instance dir no longer conflicts with itself from the second
   call on. macOS's tempdir is such a path.
 
-# cerebro 0.1.1.33
+# cerebelo 0.1.1.33
 
-- Routine capabilities are a registry, `cerebro:::.capabilities()`,
+- Routine capabilities are a registry, `cerebelo:::.capabilities()`,
   with each builder beside the function it wraps (`.cap_sync()` in
   sync.R, `.cap_lifecycle_sweep()` in lifecycle.R, ...) and
   `.build_routine_fn()` a lookup over it. A `capability:` the registry
@@ -53,16 +60,16 @@
   before every capability rather than only the briefing, reconcile and
   sync ones, and its failure message names the routine.
 
-# cerebro 0.1.1.32
+# cerebelo 0.1.1.32
 
 - The namespace imports from chat.api, so its version floor is checked
-  when cerebro loads. R enforces an Imports floor only through a
+  when cerebelo loads. R enforces an Imports floor only through a
   NAMESPACE import directive; `chat.api::` calls alone loaded whichever
   copy came first on the library path, floor or no floor. The corteza
   import is `bot_run_init()`, which `run()` calls, rather than the
   deprecated `matrix_run()`.
 
-# cerebro 0.1.1.31
+# cerebelo 0.1.1.31
 
 - **The lifecycle's open half lives here.** `segment_open()` is the
   room a cleared conversation becomes, for the rooms the bot config
@@ -70,10 +77,10 @@
   thread continues. Both were corteza's (`bot_segment_from_clear()`,
   `bot_thread_archive()`) and are now the `on_clear` and
   `thread_context` hooks `run()` hands `corteza::bot_run_init()`, so
-  corteza runs the conversation and cerebro decides what becomes of
+  corteza runs the conversation and cerebelo decides what becomes of
   it. corteza 0.7.1.77 or later.
 
-# cerebro 0.1.1.30
+# cerebelo 0.1.1.30
 
 - **Chat goes through chat.api.** Briefing sends, the fold sweep, topic
   and space rooms, and room lookup all use one chat.api client, built
@@ -90,7 +97,7 @@
   same client. mx.api is no longer needed.
 - **The conversation lifecycle has a written contract.** The
   `lifecycle` vignette records the state events corteza writes at
-  `/clear` and cerebro writes at fold time, the fold index a thread
+  `/clear` and cerebelo writes at fold time, the fold index a thread
   reply is answered from, the fold policy and its knobs, and what a
   client has to read to group rooms by state.
 - Dependencies install from CRAN and the cornball.ai drat, which now
@@ -103,7 +110,7 @@
 - The two non-ASCII string literals in `conversation_sync.R` are
   `\u` escapes, which clears the check warning.
 
-# cerebro 0.1.1.29
+# cerebelo 0.1.1.29
 
 - Keep conversation filing quiet in the source room. Both topical and
   repository filers preserve the full wiki update, but notify a destination
@@ -111,7 +118,7 @@
   handoff for those records; same-room and same-room-thread records are marked
   processed without a post. Sources with no room metadata remain eligible.
 
-# cerebro 0.1.1.28
+# cerebelo 0.1.1.28
 
 - **A bot sets its own Matrix avatar from the instance config.** Add
   `avatar: /path/to/image` under `matrix:` in an instance's
@@ -124,7 +131,7 @@
   in `state.json`, so an unchanged picture is not re-uploaded on every
   restart).
 
-# cerebro 0.1.1.27
+# cerebelo 0.1.1.27
 
 - **A topical thread room is a fold destination.**
   `sync_general_conversation_threads()` now stamps each general
@@ -157,7 +164,7 @@
   front so one failure cannot scatter the folds, and erroring on the
   stamp defeated that.
 
-# cerebro 0.1.1.26
+# cerebelo 0.1.1.26
 
 - **Routines accept five-field cron.** `schedule:` now takes the
   grammar Kubernetes CronJob and Vixie cron use -- `"*/30 * * * *"`,
@@ -172,7 +179,7 @@
   `as.POSIXct()` on a Date is midnight UTC, which west of Greenwich is
   the previous evening.
 
-# cerebro 0.1.1.25
+# cerebelo 0.1.1.25
 
 - **A conversation must show substance before it opens a topic room.**
   `sync_general_conversation_threads()` gains `create_min_turns` (3) and
@@ -185,7 +192,7 @@
   gated: filing a small exchange into a room that exists is the cheap,
   useful case -- opening a room for it is the noise.
 
-# cerebro 0.1.1.24
+# cerebelo 0.1.1.24
 
 - **A disposable git worktree no longer gets a permanent room.**
   `rev-parse --show-toplevel` inside a linked worktree returns the
@@ -193,7 +200,7 @@
   Worktrees now resolve to the repository they belong to, which keeps
   the conversation threaded rather than dropping it.
 
-# cerebro 0.1.1.23
+# cerebelo 0.1.1.23
 
 - **Topic rooms are named for their topic.** `Travel`, not
   `mybot · Travel`: the prefix said the same thing in every room of a
@@ -220,7 +227,7 @@
   `"General"` fallback for a missing topic is gone with it — a label
   nothing chose, with a room to match.
 
-# cerebro 0.1.1.22
+# cerebelo 0.1.1.22
 
 - **Each fold is indexed by its thread root.** `sweep_segments()` also
   writes an `ai.cornball.fold` state event into the topic room, keyed
@@ -228,7 +235,7 @@
   pointer, so a reply in that thread can be answered with the
   conversation it continues without scanning the room's history.
 
-# cerebro 0.1.1.21
+# cerebelo 0.1.1.21
 
 - **Folds classify into topics, confidence-gated.** Each fold is
   classified against the existing topic rooms with a self-rated
@@ -237,7 +244,7 @@
   notice, and everything else — low confidence, unreadable replies,
   provider outages — goes to `Unsorted`, silently. Never a question.
 
-# cerebro 0.1.1.20
+# cerebelo 0.1.1.20
 
 - **`sweep_segments()` folds stale conversation segments into topic
   rooms.** Segments fold once idle past `fold_after_days` (default 7,
@@ -249,14 +256,14 @@
   room. Everything files into `Unsorted` for now; classification is a
   seam. Registered as the `lifecycle_sweep` routine capability.
 
-# cerebro 0.1.1.19
+# cerebelo 0.1.1.19
 
 - **Routine traffic sends as `m.notice`.** `matrix_send()` gains a
   `msgtype` parameter, forwarded to all three backends and defaulting to
   `m.notice`: proactive persona traffic renders formatted but no longer
   pings. Pass `msgtype = "m.text"` for a message that should notify.
 
-# cerebro 0.1.1.17
+# cerebelo 0.1.1.17
 
 - **`sync_general_conversation_threads()` gains `exclude_matrix_rooms`.**
   A room can now be suppressed entirely by id. `matrix_roots` could not
@@ -264,7 +271,7 @@
   instance shares one. Applied before the collection budget is spent, so
   a suppressed room cannot crowd out wanted material. Unset by default.
 
-# cerebro 0.1.1.16
+# cerebelo 0.1.1.16
 
 - **Conversation updates are grouped by destination.** Distinct
   conversations routed to the same topic each wrote their own page block
@@ -275,7 +282,7 @@
   than the concatenated summaries; the full per-source sections live on
   the page.
 
-# cerebro 0.1.1.15
+# cerebelo 0.1.1.15
 
 - **Duplicate conversation sources collapse before routing.** The same
   room is archived repeatedly, so one conversation arrived as many
@@ -284,7 +291,7 @@
   full content identity before routing. Against a live vault, 284 usable
   sources collapse to 167.
 
-# cerebro 0.1.1.14
+# cerebelo 0.1.1.14
 
 - **Generated summaries no longer feed themselves.** Thread rooms are
   archived like any other room, so a summary posted into one became a
@@ -293,7 +300,7 @@
   with the summary prefix, which covers historical archives and future
   ones alike.
 
-# cerebro 0.1.1.13
+# cerebelo 0.1.1.13
 
 - Briefing sources (`saber_git`, `offlist_git`, `git_recent`) now use
   saber's exported git primitives (`saber::git_commit_count_since()`,
@@ -302,13 +309,13 @@
   worktrees and dubious-ownership repos no longer miscount as zero.
   Requires saber >= 0.7.2.2.
 
-# cerebro 0.1.1.12
+# cerebelo 0.1.1.12
 
 - Shell routine `timeout:` is validated at registration; an invalid
   value (non-numeric, non-scalar, negative) skips the routine with a
   startup message instead of failing when it first fires.
 
-# cerebro 0.1.1.11
+# cerebelo 0.1.1.11
 
 - Routine `last_fired` state is instance-scoped
   (`routines-<instance>.json`); previously all instances shared one
@@ -318,7 +325,7 @@
   killed (status 124) instead of blocking the scheduler and Matrix
   loop.
 
-# cerebro 0.1.1.10
+# cerebelo 0.1.1.10
 
 - Matrix chat threads route by room ID from archive frontmatter instead
   of display name; room names and working directories are kept as
@@ -329,7 +336,7 @@
 - Matrix archives with no frontmatter or room metadata fall back to the
   filename label again (regression in the room-id change).
 
-# cerebro 0.1.1.9
+# cerebelo 0.1.1.9
 
 - Repo thread rooms are titled with the shell-style repository path
   (`~/pensar`; the absolute path outside the home directory). Rooms
@@ -338,28 +345,28 @@
   is re-keyed (room-cache writes no longer append duplicate keys).
   General topical rooms keep the `<prefix> · <topic>` format.
 
-# cerebro 0.1.1.8
+# cerebelo 0.1.1.8
 
 - Fixed the `renviron` default under littler: it sets `R_ENVIRON_USER=""`
   to suppress R's startup files, which silently disabled Renviron loading.
   Empty now falls through to `~/.Renviron`.
 
-# cerebro 0.1.1.7
+# cerebelo 0.1.1.7
 
 - The Renviron location `run()` loads is now configurable: a top-level
   `renviron:` key in `config.yaml` wins, then `R_ENVIRON_USER`, then
   `~/.Renviron`; `renviron: false` (or passing `NULL`) skips loading.
 
-# cerebro 0.1.1.6
+# cerebelo 0.1.1.6
 
 - `run()` loads `~/.Renviron` at startup (new `renviron` parameter, `NULL` to
   skip), so daemon frontends that skip R's startup files -- littler under
   systemd -- still see API keys after a reboot.
 
-# cerebro 0.1.1.5
+# cerebelo 0.1.1.5
 
 - `hacer` is now an optional integration supplied through the cornball.ai drat
-  repository. Core cerebro installation and scaffolding no longer require it;
+  repository. Core cerebelo installation and scaffolding no longer require it;
   `sync_todo()` checks for it when invoked.
 
 - Fixed local-calendar time windows for chat and vault evidence, removed
@@ -386,7 +393,7 @@
 - Matrix transport now supports explicit persona configs and idempotent private
   room creation with corteza's existing repo-cwd topic convention.
 
-# cerebro 0.1.1.4
+# cerebelo 0.1.1.4
 
 - Added `scaffold_persona()` and package-owned templates for creating or
   updating the canonical persona structure. The scaffold is dry-run capable,
@@ -397,7 +404,7 @@
   metadata uses hacer's current `todo/config.yaml` interface rather than the
   duplicated legacy `hacer_config.R` files.
 
-# cerebro 0.1.1.3
+# cerebelo 0.1.1.3
 
 - `run()` can fold the corteza Matrix long-poll into its scheduler loop,
   so one process serves both the chat bot and the routine scheduler.
@@ -411,7 +418,7 @@
   `matrix:` block only feeds corteza. Requires `corteza (>= 0.6.9.6)`
   for `matrix_run_init()`/`matrix_run_step()`.
 
-# cerebro 0.1.1
+# cerebelo 0.1.1
 
 - Added the YAML `vault_check` routine capability and `vault_check()`
   helper for reporting `pensar::lint()` results across configured vaults.

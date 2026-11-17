@@ -1,7 +1,7 @@
 % tinyrox says don't edit this manually, but it can't stop you!
 \name{agent_paths}
 \alias{agent_paths}
-\title{Standard paths for a named cerebro agent}
+\title{Standard paths for a named cerebelo agent}
 \usage{
 agent_paths(name, root = "~")
 }
@@ -15,5 +15,5 @@ agent_paths(name, root = "~")
 Named list of standard paths.
 }
 \description{
-Standard paths for a named cerebro agent
+Standard paths for a named cerebelo agent
 }

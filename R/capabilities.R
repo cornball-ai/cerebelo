@@ -25,11 +25,11 @@
     cap <- r$capability
     nm <- r$name %||% "(unnamed)"
     if (is.null(cap)) {
-        stop("cerebro: routine ", nm, " has no capability; valid: ",
+        stop("cerebelo: routine ", nm, " has no capability; valid: ",
              paste(names(caps), collapse = ", "), call. = FALSE)
     }
     if (length(cap) != 1L || !is.character(cap) || !cap %in% names(caps)) {
-        stop("cerebro: unknown capability '", format(cap), "' for routine ",
+        stop("cerebelo: unknown capability '", format(cap), "' for routine ",
              nm, "; valid: ", paste(names(caps), collapse = ", "),
              call. = FALSE)
     }
@@ -50,7 +50,7 @@
     force(name)
     function() {
         tryCatch(pre(), error = function(e) {
-            message(sprintf("cerebro: pre hook for %s failed: %s", name,
+            message(sprintf("cerebelo: pre hook for %s failed: %s", name,
                             conditionMessage(e)))
         })
         fn()
@@ -73,7 +73,7 @@
 .cap_shell <- function(r, briefings, cfg, instance_dir) {
     cmd <- r$command
     if (is.null(cmd) || !nzchar(cmd)) {
-        message("cerebro: routine ", r$name, " shell missing command")
+        message("cerebelo: routine ", r$name, " shell missing command")
         return(NULL)
     }
     tmo <- r$timeout %||% 0
@@ -83,7 +83,7 @@
         tmo <- NA_real_
     }
     if (is.na(tmo) || tmo < 0) {
-        message("cerebro: routine ", r$name, " invalid timeout (",
+        message("cerebelo: routine ", r$name, " invalid timeout (",
                 format(r$timeout), "); not registering")
         return(NULL)
     }
@@ -94,7 +94,7 @@
 .cap_r <- function(r, briefings, cfg, instance_dir) {
     expr <- r$expr
     if (is.null(expr) || !nzchar(expr)) {
-        message("cerebro: routine ", r$name, " r missing expr")
+        message("cerebelo: routine ", r$name, " r missing expr")
         return(NULL)
     }
     function() eval(parse(text = expr), envir = globalenv())

@@ -1,10 +1,10 @@
-# cerebro
+# cerebelo
 
 **Persistent AI assistants in R.** Scheduled routines, conversational agents,
 and Markdown knowledge vaults, built from R packages you can also use on their
 own.
 
-cerebro runs an assistant from a directory you control. Its configuration,
+cerebelo runs an assistant from a directory you control. Its configuration,
 prompts, and routines are ordinary files. One R process runs the scheduler
 and, when enabled, the Matrix chat loop.
 
@@ -33,17 +33,17 @@ repos <- c(
     "https://cloud.r-project.org"
 )
 install.packages("remotes", repos = repos)
-remotes::install_github("cornball-ai/cerebro", repos = repos, upgrade = "never")
+remotes::install_github("cornball-ai/cerebelo", repos = repos, upgrade = "never")
 ```
 
 Check the component versions with:
 
 ```r
-cerebro::status()
+cerebelo::status()
 ```
 
 This is development software. See [NEWS.md](NEWS.md) for changes and
-[GitHub issues](https://github.com/cornball-ai/cerebro/issues) for bugs and
+[GitHub issues](https://github.com/cornball-ai/cerebelo/issues) for bugs and
 feature requests.
 
 ## Create an assistant
@@ -52,10 +52,10 @@ Try the scaffold in a temporary directory:
 
 ```r
 assistant_dir <- file.path(tempdir(), "myassistant")
-cerebro::scaffold_persona(
+cerebelo::scaffold_persona(
     "myassistant", instance_dir = assistant_dir, vault = "local", dry_run = TRUE
 )
-cerebro::scaffold_persona(
+cerebelo::scaffold_persona(
     "myassistant", instance_dir = assistant_dir, vault = "local"
 )
 ```
@@ -87,13 +87,13 @@ routines:
   - name: package status
     schedule: hourly
     capability: r
-    expr: "print(cerebro::status())"
+    expr: "print(cerebelo::status())"
 ```
 
 Start the scheduler in R:
 
 ```r
-cerebro::run(assistant_dir)
+cerebelo::run(assistant_dir)
 ```
 
 `run()` reads `config.yaml`, registers the routines, restores their scheduling
@@ -104,10 +104,10 @@ exists. Supported schedules include `"hourly"`, `"daily 09:00"`,
 Routines can also be registered directly:
 
 ```r
-cerebro::add_routine("package status", "hourly", function() {
-    print(cerebro::status())
+cerebelo::add_routine("package status", "hourly", function() {
+    print(cerebelo::status())
 })
-cerebro::list_routines()
+cerebelo::list_routines()
 ```
 
 Put those registrations in `routines.R` to reload them on startup. The scheduler
@@ -141,7 +141,7 @@ together. Configure destinations and participants explicitly for each instance.
 | [pensar](https://github.com/cornball-ai/pensar) | Markdown knowledge vaults and their links |
 | [hacer](https://github.com/cornball-ai/hacer) | Optional plain-text task planning |
 
-cerebro combines these packages with its scheduler, assistant scaffolding,
+cerebelo combines these packages with its scheduler, assistant scaffolding,
 briefing routines, and conversation workflows. Each component remains usable
 on its own. `DESCRIPTION` records the actual required and optional dependencies.
 
@@ -162,7 +162,7 @@ The package owns shared runtime behavior. The assistant directory owns its
 configuration, prompts, routines, and knowledge. Logs, live state, credentials,
 and generated media should stay outside package source control.
 
-After upgrading cerebro or a dependency loaded by a running assistant, restart
+After upgrading cerebelo or a dependency loaded by a running assistant, restart
 that assistant so it loads a consistent set of installed packages. Reinstalling
 a package does not refresh an existing R process.
 

@@ -1,9 +1,9 @@
-# A cerebro "instance" is a directory holding a config.yaml plus runtime
-# state (state.json, logs). cerebro
+# A cerebelo "instance" is a directory holding a config.yaml plus runtime
+# state (state.json, logs). cerebelo
 # itself ships no instance — it ships the machinery, the instance ships
 # the data.
 
-#' Standard paths for a named cerebro agent
+#' Standard paths for a named cerebelo agent
 #'
 #' @param name Character. Agent/instance name under \code{root}, e.g.
 #'   \code{"myassistant"} resolves under \code{~/myassistant}.
@@ -27,7 +27,7 @@ agent_paths <- function(name, root = "~") {
          wiki_raw = file.path(base, "wiki", "raw"))
 }
 
-#' Create or activate a named cerebro agent instance
+#' Create or activate a named cerebelo agent instance
 #'
 #' Creates the standard directory layout used by instance-relative
 #' briefing defaults: \code{todo/this_week}, \code{todo/archive},
@@ -37,7 +37,7 @@ agent_paths <- function(name, root = "~") {
 #' @param root Character. Parent directory for named agents.
 #' @param create Logical. Create the standard directories.
 #' @param set_active Logical. Set option/env so this becomes the active
-#'   cerebro instance for the current R process.
+#'   cerebelo instance for the current R process.
 #' @return Named list from \code{\link{agent_paths}}.
 #' @export
 instantiate_agent <- function(name, root = "~", create = TRUE,
@@ -52,7 +52,7 @@ instantiate_agent <- function(name, root = "~", create = TRUE,
         }
     }
     if (isTRUE(set_active)) {
-        options(cerebro.instance_dir = paths$instance_dir)
+        options(cerebelo.instance_dir = paths$instance_dir)
         Sys.setenv(CEREBRO_INSTANCE_DIR = paths$instance_dir)
     }
     paths
@@ -60,7 +60,7 @@ instantiate_agent <- function(name, root = "~", create = TRUE,
 
 #' Resolve the active instance directory
 #'
-#' Order: \code{instance_dir} arg, \code{getOption("cerebro.instance_dir")},
+#' Order: \code{instance_dir} arg, \code{getOption("cerebelo.instance_dir")},
 #' env \code{CEREBRO_INSTANCE_DIR}. Errors if none of those resolve to an
 #' existing directory.
 #'
@@ -69,11 +69,11 @@ instantiate_agent <- function(name, root = "~", create = TRUE,
 #' @export
 instance_dir <- function(instance_dir = NULL) {
     cand <- instance_dir %||%
-    getOption("cerebro.instance_dir", NULL) %||%
+    getOption("cerebelo.instance_dir", NULL) %||%
     Sys.getenv("CEREBRO_INSTANCE_DIR", "")
     if (!nzchar(cand)) {
-        stop("No cerebro instance dir set. Pass instance_dir, set ",
-             "options(cerebro.instance_dir=) or env CEREBRO_INSTANCE_DIR.",
+        stop("No cerebelo instance dir set. Pass instance_dir, set ",
+             "options(cerebelo.instance_dir=) or env CEREBRO_INSTANCE_DIR.",
              call. = FALSE)
     }
     cand <- path.expand(cand)
