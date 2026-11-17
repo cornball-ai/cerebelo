@@ -1,3 +1,12 @@
+# cerebelo 0.2.0.6
+
+- `handle_command()` routes an inbound message: a built-in slash command
+  (`cd`, `provider`, `model`, `rc`) acts on the session and replies, a
+  `/command` the bot does not own passes through to the agent, and plain text
+  is an ordinary prompt. `parse_command()` splits a command into its name and
+  argument, and `session_state()` holds the session's cwd, provider, and
+  model. The inbound half of the agent-session bot side.
+
 # cerebelo 0.2.0.5
 
 - `publish_commands()` writes a bot's slash-command list to a room as an
