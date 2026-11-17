@@ -1,3 +1,12 @@
+# cerebelo 0.2.0.4
+
+- `run()` configures the pensar vault and hacer repo from two optional
+  `config.yaml` keys, `vault:` and `todo:`. It points pensar and hacer at
+  them in this process and exports `PENSAR_VAULT` / `HACER_REPO` so the
+  shell-capability scripts it spawns inherit the same paths. This replaces
+  the shared `~/.Rprofile` that littler's `r` sourced but `Rscript` does
+  not, so a bot run under `Rscript` no longer archives to no vault.
+
 # cerebelo 0.2.0.3
 
 - Renamed the package from cerebro to cerebelo. The API and behavior are
