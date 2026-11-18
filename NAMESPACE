@@ -1,7 +1,18 @@
 # tinyrox says don't edit this manually, but it can't stop you!
 
+export(acp_permission_to_event)
+export(acp_to_event)
 export(add_routine)
+export(agent_approval_request)
+export(agent_error)
+export(agent_message)
 export(agent_paths)
+export(agent_plan)
+export(agent_session_info)
+export(agent_text)
+export(agent_thought)
+export(agent_tool)
+export(agent_turn_end)
 export(briefing)
 export(briefing_mode_default)
 export(briefing_source_chat_recent)
