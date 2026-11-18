@@ -1,3 +1,15 @@
+# cerebelo 0.2.0.9
+
+- The agent-session relay's provider-agnostic core. `session_registry()`,
+  `bind_session()` and `session_for()` hold a per-room session (its cwd,
+  provider, model, agent runner, and live turn state). `relay_inbound()`
+  routes an inbound message: an approval response, `/stop`, or
+  `handle_command()`'s reply / passthrough / prompt. `relay_emit()` turns an
+  agent event into a room operation: it buffers streamed text to boundaries,
+  sends a tool card once and edits it in place by `tool_call_id`, remembers an
+  approval, and drops `thought`. Tested against fakes; the drive loop that
+  pumps the agent joins once acp.api is a dependency.
+
 # cerebelo 0.2.0.8
 
 - `codex_to_event()` maps a Codex app-server event (as acp.api's
