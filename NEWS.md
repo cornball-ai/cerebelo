@@ -1,3 +1,12 @@
+# cerebelo 0.2.0.7
+
+- The agent-session event codec: `agent_text()`, `agent_tool()`,
+  `agent_turn_end()` and the other `agent_*` constructors build an
+  `ai.cornball.agent` payload, `agent_message()` wraps one into the m.notice
+  content a room carries, and `acp_to_event()` / `acp_permission_to_event()`
+  map an ACP agent's updates onto them. The outbound half of the event relay;
+  the Codex and corteza mappings follow.
+
 # cerebelo 0.2.0.6
 
 - `handle_command()` routes an inbound message: a built-in slash command
