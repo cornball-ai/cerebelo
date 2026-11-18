@@ -1,3 +1,13 @@
+# cerebelo 0.2.0.8
+
+- `codex_to_event()` maps a Codex app-server event (as acp.api's
+  `codex_listen` delivers it) onto an `ai.cornball.agent` payload, and
+  `codex_approval_to_event()` maps a Codex approval request to an
+  `approval_request` whose option ids are the decisions Codex expects back.
+  The Codex half of the event codec; it maps text, turn ends and approvals,
+  with reasoning, tool and plan items left until a live session confirms
+  their app-server method names.
+
 # cerebelo 0.2.0.7
 
 - The agent-session event codec: `agent_text()`, `agent_tool()`,
