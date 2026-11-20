@@ -1,3 +1,15 @@
+# cerebelo 0.2.0.11
+
+- The fold sweep reuses an existing topic room when the classifier
+  restates its name, matching on the normalized name and on a leading
+  run of words in either direction, so "Music charts" and "Music charts
+  and radio airplay" land in one room rather than two.
+- The fold sweep's shared space is opened to filing by its members on
+  reuse, not only at creation. A space created before this existed, or
+  by a persona without the power to lower the bar, is opened the next
+  time its creator passes through, so its topic rooms file as restricted
+  members of the space instead of falling back to a per-room invite.
+
 # cerebelo 0.2.0.10
 
 - `drive_codex_once()` drives one Codex turn over acp.api into a room,
