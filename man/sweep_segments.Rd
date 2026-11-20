@@ -16,6 +16,7 @@ sweep_segments(
   instance_dir = NULL,
   space = NULL,
   invite = character(),
+  retire_topic_after_days = NULL,
   dry_run = FALSE,
   client = NULL
 )
@@ -60,6 +61,14 @@ reachable at all; with one it appears in the space.}
 \item{invite}{Character vector of Matrix user IDs, invited to
 \code{space} once when it is created.}
 
+\item{retire_topic_after_days}{Integer or NULL. When set, a topic room
+that has seen no message of any sender for this many days is retired:
+its lifecycle state flips to \code{"retired"}, which a cerebro client
+reads to drop it from the sidebar. The Matrix room and its history
+stay, so a later mention reuses it or opens a fresh one. NULL, the
+default, never retires a topic; the \code{unsorted_topic} catch-all
+is never retired either.}
+
 \item{dry_run}{Logical. Report the plan without network writes.}
 
 \item{client}{A chat.api client, or NULL to build one from
@@ -69,7 +78,8 @@ one without them errors on first use.}
 }
 \value{
 Invisibly, a list with \code{folded} (list of
-  \code{list(id, topic)}) and \code{skipped} (character ids).
+  \code{list(id, topic)}), \code{skipped} (character ids), and
+  \code{retired} (character ids of topic rooms retired this sweep).
 }
 \description{
 The fold half of the conversation lifecycle. Segment rooms (opened by
