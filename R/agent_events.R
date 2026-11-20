@@ -52,7 +52,8 @@
 #' str(agent_text("Hello.", "s1", "t1", final = TRUE))
 #' str(agent_turn_end("s1", "t1", "end_turn"))
 #'
-#' @name agent_events
+#' @aliases agent_events
+#' @rdname agent_events
 #' @export
 agent_text <- function(text, session_id, turn_id, message_id = NULL,
                        final = FALSE) {
