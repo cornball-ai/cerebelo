@@ -47,6 +47,44 @@ local({
     expect_identical(dec(list(topic = "Gardening", new = TRUE,
                               confidence = 0.9)),
                      list(topic = "Gardening", create = TRUE))
+
+    # A restatement that extends an existing name folds into it, not a
+    # near-duplicate room -- the exact-membership test alone missed these.
+    expect_identical(dec(list(topic = "Cooking tips", new = TRUE,
+                              confidence = 0.9)),
+                     list(topic = "Cooking", create = FALSE))
+    expect_identical(dec(list(topic = "Reading list and reviews",
+                              new = TRUE, confidence = 0.9)),
+                     list(topic = "Reading", create = FALSE))
+    # Case and punctuation do not fork a room.
+    expect_identical(dec(list(topic = "cooking!", new = TRUE,
+                              confidence = 0.9)),
+                     list(topic = "Cooking", create = FALSE))
+    # A shared word is not a shared prefix: still a new topic.
+    expect_identical(dec(list(topic = "Cookware", new = FALSE,
+                              confidence = 0.9)),
+                     list(topic = "Cookware", create = TRUE))
+})
+
+# Reuse works in both directions: a proposal shorter than the established
+# name and one longer both fold into the single existing room.
+local({
+    topics <- c(`Music charts and radio airplay` = "!mc:ex")
+    dec <- function(t) {
+        cerebelo:::.topic_decision(list(topic = t, new = TRUE,
+                                       confidence = 0.9),
+                                  topics, threshold = 0.7,
+                                  unsorted = "Unsorted")
+    }
+    expect_identical(dec("Music charts"),
+                     list(topic = "Music charts and radio airplay",
+                          create = FALSE))
+    expect_identical(dec("Music charts and radio airplay"),
+                     list(topic = "Music charts and radio airplay",
+                          create = FALSE))
+    # An unrelated name is not swept in.
+    expect_identical(dec("Sports betting"),
+                     list(topic = "Sports betting", create = TRUE))
 })
 
 # ---- Reply parsing ----

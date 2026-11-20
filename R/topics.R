@@ -91,10 +91,11 @@
                     "Opening of the archived transcript:",
                     excerpt,
                     "",
-                    paste("Pick the existing topic that fits best, or propose a new",
-                          "topic name (2-4 words) only if none fits. Rate your",
-                          "confidence that the conversation belongs in the chosen",
-                          "topic, 0 to 1."),
+                    paste("Pick the existing topic that fits best and return its",
+                          "exact name, or propose a new topic name (2-4 words)",
+                          "only if none fits. Do not restate or extend an existing",
+                          "name. Rate your confidence that the conversation belongs",
+                          "in the chosen topic, 0 to 1."),
                     paste0("Return ONLY JSON: ",
                            "{\"topic\": \"...\", \"new\": true|false, ",
                            "\"confidence\": 0.0}"),
@@ -163,8 +164,61 @@
     if (nchar(topic) > 60L) {
         return(fallthrough)
     }
-    # Membership decides existing vs new: a model claiming an existing
-    # name that is not there is proposing a new topic whether it knows
-    # it or not.
-    list(topic = topic, create = !(topic %in% names(topics)))
+    # Reuse an existing topic room when the proposal is the same topic in
+    # a slightly different name. The classifier tends to restate a name it
+    # was shown ("Music charts" -> "Music charts and radio airplay"), and
+    # an exact-membership test alone would make that a second room. Match
+    # on the normalized name and word-prefix either way, keeping the
+    # established room's own name.
+    existing <- .match_existing_topic(topic, names(topics))
+    if (!is.null(existing)) {
+        return(list(topic = existing, create = FALSE))
+    }
+    list(topic = topic, create = TRUE)
+}
+
+# An existing topic name the proposal should fold into, or NULL for a
+# genuinely new topic. A normalized exact match wins; otherwise one name's
+# words being a leading run of the other's catches a restatement that
+# extends an established name instead of inventing a near-duplicate room.
+.match_existing_topic <- function(proposed, existing) {
+    if (!length(existing)) {
+        return(NULL)
+    }
+    np <- .topic_norm(proposed)
+    if (!nzchar(np)) {
+        return(NULL)
+    }
+    ne <- vapply(existing, .topic_norm, character(1L))
+    hit <- which(ne == np)
+    if (length(hit)) {
+        return(existing[[hit[[1L]]]])
+    }
+    pw <- .topic_words(np)
+    for (i in seq_along(existing)) {
+        ew <- .topic_words(ne[[i]])
+        if (.words_prefix(pw, ew) || .words_prefix(ew, pw)) {
+            return(existing[[i]])
+        }
+    }
+    NULL
+}
+
+# Lower case, punctuation to spaces, whitespace collapsed: the comparison
+# key for two topic names that mean the same thing.
+.topic_norm <- function(x) {
+    x <- tolower(as.character(x %||% "")[[1L]])
+    x <- gsub("[[:punct:]]", " ", x)
+    trimws(gsub("[[:space:]]+", " ", x))
+}
+
+.topic_words <- function(x) {
+    w <- strsplit(x, " ", fixed = TRUE)[[1L]]
+    w[nzchar(w)]
+}
+
+# Is `short` the leading run of words of `long`?
+.words_prefix <- function(short, long) {
+    length(short) > 0L && length(short) <= length(long) &&
+    all(short == long[seq_along(short)])
 }
