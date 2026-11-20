@@ -292,3 +292,104 @@ local({
         "would fold")
     expect_identical(res$folded[[1L]]$id, "!seg1:ex")
 })
+
+# ---- Topic retirement: the pure policy ----
+# .retire_due decides from timestamps alone, so the staleness rule is
+# testable without a homeserver.
+local({
+    now <- Sys.time()
+    rd <- cerebelo:::.retire_due
+    mk <- function(id, idle_days, label = "T") {
+        list(id = id, label = label, last_active = now - idle_days * 86400)
+    }
+    topics <- list(mk("!a", 40), mk("!b", 10), mk("!c", 45, "Unsorted"),
+                   list(id = "!d", label = "T", last_active = as.POSIXct(NA)))
+
+    # Idle past the threshold retires; fresh, the catch-all, and an
+    # undatable topic all stay.
+    expect_identical(rd(topics, now = now, retire_after_days = 30,
+                        unsorted = "Unsorted"), "!a")
+    # A tighter threshold catches more, but never the undated one.
+    expect_identical(sort(rd(topics, now = now, retire_after_days = 5,
+                             unsorted = "Unsorted")), c("!a", "!b"))
+    # No catch-all named means nothing is exempted for being it.
+    expect_identical(sort(rd(topics, now = now, retire_after_days = 30,
+                             unsorted = NULL)), c("!a", "!c"))
+    expect_identical(rd(list(), now = now, retire_after_days = 30), character())
+})
+
+# ---- One sweep that only retires ----
+# No segments to fold: a stale topic retires in place, a fresh one and the
+# Unsorted catch-all are left alone, and the write is the lifecycle flip
+# with no tombstone and no post.
+local({
+    now <- Sys.time()
+    states <- list(
+        `!old:ex` = list(state = "topic", topic = "Spider silk"),
+        `!fresh:ex` = list(state = "topic", topic = "Cooking"),
+        `!uns:ex` = list(state = "topic", topic = "Unsorted")
+    )
+    messages <- list(
+        `!old:ex` = list(chunk = list(matrix_event("@bot:ex",
+            as.numeric(now - 40 * 86400) * 1000, "old fold",
+            msgtype = "m.notice"))),
+        `!fresh:ex` = list(chunk = list(matrix_event("@bot:ex",
+            as.numeric(now - 3 * 86400) * 1000, "recent fold",
+            msgtype = "m.notice"))),
+        `!uns:ex` = list(chunk = list(matrix_event("@bot:ex",
+            as.numeric(now - 99 * 86400) * 1000, "old", msgtype = "m.notice")))
+    )
+    names_by_id <- c(`!old:ex` = "Spider silk", `!fresh:ex` = "Cooking",
+                     `!uns:ex` = "Unsorted")
+    set_states <- list()
+    sends <- 0L
+    cl <- matrix_client(
+        .channels = function(sess) names(states),
+        .info = list(name = function(sess, rid) names_by_id[[rid]],
+                     topic = function(sess, rid) NULL),
+        .get_state = function(sess, rid, type, state_key = "") {
+            if (identical(type, "ai.cornball.lifecycle")) states[[rid]] else NULL
+        },
+        .history = function(sess, rid, dir = "b", limit = 50L, from = NULL) {
+            messages[[rid]] %||% list(chunk = list())
+        },
+        .state = function(sess, rid, type, content, state_key = "") {
+            set_states[[length(set_states) + 1L]] <<- list(room = rid,
+                type = type, content = content)
+            "$st"
+        },
+        .send = function(mx, text, room = NULL, ...) {
+            sends <<- sends + 1L
+            "$x"
+        },
+        .create = function(sess, name, ...) "!new:ex")
+
+    res <- suppressMessages(cerebelo::sweep_segments(model = "m", client = cl,
+        retire_topic_after_days = 30, unsorted_topic = "Unsorted"))
+
+    # Only the stale, non-catch-all topic retires.
+    expect_identical(res$retired, "!old:ex")
+    expect_identical(res$folded, list())
+
+    flip <- Filter(function(s) {
+        identical(s$room, "!old:ex") &&
+            identical(s$type, "ai.cornball.lifecycle")
+    }, set_states)
+    expect_identical(length(flip), 1L)
+    expect_identical(flip[[1L]]$content$state, "retired")
+    # Provenance kept so the room can be un-retired in place.
+    expect_identical(flip[[1L]]$content$topic, "Spider silk")
+    expect_true(is.character(flip[[1L]]$content$retired_at) &&
+                    nzchar(flip[[1L]]$content$retired_at))
+
+    # Exactly one room retired; no tombstone and no post went out.
+    retires <- Filter(function(s) {
+        identical(s$type, "ai.cornball.lifecycle") &&
+            identical(s$content$state, "retired")
+    }, set_states)
+    expect_identical(length(retires), 1L)
+    tombs <- Filter(function(s) identical(s$type, "m.room.tombstone"),
+                    set_states)
+    expect_identical(length(tombs), 0L)
+    expect_identical(sends, 0L)
+})

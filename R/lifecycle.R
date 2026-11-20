@@ -76,13 +76,21 @@
 #'   reachable at all; with one it appears in the space.
 #' @param invite Character vector of Matrix user IDs, invited to
 #'   \code{space} once when it is created.
+#' @param retire_topic_after_days Integer or NULL. When set, a topic room
+#'   that has seen no message of any sender for this many days is retired:
+#'   its lifecycle state flips to \code{"retired"}, which a cerebro client
+#'   reads to drop it from the sidebar. The Matrix room and its history
+#'   stay, so a later mention reuses it or opens a fresh one. NULL, the
+#'   default, never retires a topic; the \code{unsorted_topic} catch-all
+#'   is never retired either.
 #' @param dry_run Logical. Report the plan without network writes.
 #' @param client A chat.api client, or NULL to build one from
 #'   \code{matrix_config}. The transport needs durable channel state and
 #'   history (\code{chat_capabilities()$set_state} and \code{$history});
 #'   one without them errors on first use.
 #' @return Invisibly, a list with \code{folded} (list of
-#'   \code{list(id, topic)}) and \code{skipped} (character ids).
+#'   \code{list(id, topic)}), \code{skipped} (character ids), and
+#'   \code{retired} (character ids of topic rooms retired this sweep).
 #' @export
 sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
                            fold_min_days = 2L, topic_confidence = 0.7,
@@ -90,14 +98,16 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
                            provider = NULL, room = NULL,
                            matrix_config = NULL, instance_dir = NULL,
                            space = NULL, invite = character(),
-                           dry_run = FALSE, client = NULL) {
+                           retire_topic_after_days = NULL, dry_run = FALSE,
+                           client = NULL) {
     .require_model(model)
     client <- client %||% .chat_client(matrix_config)
 
     segs <- .segment_records(client)
     undated <- vapply(segs, function(s) is.na(s$last_active), logical(1))
     for (s in segs[undated]) {
-        message("cerebelo: segment ", s$id, " has no datable activity; skipping")
+        message("cerebelo: segment ", s$id,
+                " has no datable activity; skipping")
     }
     skipped <- vapply(segs[undated], function(s) s$id, character(1))
     segs <- segs[!undated]
@@ -108,7 +118,10 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
                      fold_min_days = fold_min_days)
     if (!length(ids)) {
         message("cerebelo: no segments due to fold (", length(segs), " active)")
-        return(invisible(list(folded = list(), skipped = skipped)))
+        retired <- .sweep_retire(client, retire_topic_after_days,
+                                 unsorted_topic, dry_run)
+        return(invisible(list(folded = list(), skipped = skipped,
+                              retired = retired)))
     }
 
     to_fold <- segs[vapply(segs, function(s) s$id %in% ids, logical(1))]
@@ -207,7 +220,9 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
                     room = room, dry_run = dry_run,
                     instance_dir = instance_dir, client = client)
     }
-    invisible(list(folded = folded, skipped = skipped))
+    retired <- .sweep_retire(client, retire_topic_after_days,
+                             unsorted_topic, dry_run)
+    invisible(list(folded = folded, skipped = skipped, retired = retired))
 }
 
 # Capability builder. Every knob is a field on the routine entry, with
@@ -223,12 +238,17 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
                                        "topic_confidence", min = 0, max = 1)
     unsorted_topic <- r$unsorted_topic %||% "Unsorted"
     model <- .require_model(r$model,
-                            sprintf("routine %s",
-                                    r$name %||% "lifecycle_sweep"))
+                            sprintf("routine %s", r$name %||% "lifecycle_sweep"))
     provider <- r$provider %||% NULL
     room <- r$room %||% NULL
     space <- r$space %||% NULL
     invite <- as.character(r$invite %||% character())
+    retire_topic_after_days <- if (is.null(r$retire_topic_after_days)) {
+        NULL
+    } else {
+        .config_integer(r$retire_topic_after_days, 30L,
+                        "retire_topic_after_days", min = 1L)
+    }
     dry_run <- isTRUE(r$dry_run)
     idir <- instance_dir
     function() {
@@ -239,6 +259,7 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
                        unsorted_topic = unsorted_topic,
                        model = model, provider = provider,
                        room = room, space = space, invite = invite,
+                       retire_topic_after_days = retire_topic_after_days,
                        dry_run = dry_run, instance_dir = idir)
     }
 }
@@ -355,6 +376,116 @@ sweep_segments <- function(fold_after_days = 7L, max_segments = 12L,
         due[utils::head(eligible, overflow)] <- TRUE
     }
     ids[due][order(idle[due], decreasing = TRUE)]
+}
+
+# Every joined room in lifecycle state "topic", with its label and when
+# it last saw any activity. A topic lives on the folds posted into it, so
+# its clock is the newest message of ANY sender, not the last human one a
+# segment ages by.
+.topic_records <- function(client) {
+    rooms <- chat.api::chat_channels(client)
+    out <- list()
+    for (rid in rooms) {
+        st <- .lifecycle_state(client, rid)
+        if (!identical(st$state, "topic")) {
+            next
+        }
+        out[[length(out) + 1L]] <- list(id = rid, state = st,
+                                        label = .room_label(client, rid),
+                                        last_active = .last_activity_ts(client, rid))
+    }
+    out
+}
+
+# The newest message in a room, any sender: the clock a topic retires by.
+# One page holds the newest message. A page that is empty or all undatable
+# -- an encrypted room a side client cannot read -- gives NA, and the
+# caller leaves an undatable topic alone rather than retiring it blind.
+.last_activity_ts <- function(client, room_id) {
+    page <- tryCatch(chat.api::chat_history(client, room_id, limit = 50L),
+                     error = function(e) NULL)
+    if (is.null(page)) {
+        return(as.POSIXct(NA))
+    }
+    newest <- as.POSIXct(NA)
+    for (m in page$messages) {
+        at <- m$ts
+        if (inherits(at, "POSIXct") && length(at) == 1L && !is.na(at) &&
+            (is.na(newest) || at > newest)) {
+            newest <- at
+        }
+    }
+    newest
+}
+
+# Which topics retire, from timestamps alone. Pure, like .fold_due: the
+# ids idle longer than the threshold, the catch-all never among them and
+# an undatable topic always left alone.
+.retire_due <- function(topics, now, retire_after_days, unsorted = NULL) {
+    if (!length(topics)) {
+        return(character())
+    }
+    ids <- vapply(topics, function(t) t$id, character(1L))
+    due <- vapply(topics, function(t) {
+        if (!is.null(unsorted) && identical(t$label, unsorted)) {
+            return(FALSE)
+        }
+        la <- t$last_active
+        if (!inherits(la, "POSIXct") || length(la) != 1L || is.na(la)) {
+            return(FALSE)
+        }
+        as.numeric(difftime(now, la, units = "days")) > retire_after_days
+    }, logical(1L))
+    ids[due]
+}
+
+# Flip one topic to "retired", keeping its other fields so the room can be
+# un-retired in place later. A state write only, with no post, so nothing
+# notifies and the room's history is untouched.
+.retire_one <- function(client, rec) {
+    content <- rec$state
+    content$state <- "retired"
+    content$retired_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+    chat.api::chat_set_state(client, rec$id, .LIFECYCLE_TYPE, content)
+    invisible(rec$id)
+}
+
+# The retire phase of a sweep: enumerate topic rooms, retire the stale
+# ones, and return the ids retired. Off (and empty) when no threshold is
+# set, so the fold-only sweep is unchanged. A single room's failure is
+# reported and skipped, like a fold's.
+.sweep_retire <- function(client, retire_after_days, unsorted, dry_run) {
+    if (is.null(retire_after_days)) {
+        return(character())
+    }
+    trecs <- .topic_records(client)
+    due <- .retire_due(trecs, now = Sys.time(),
+                       retire_after_days = retire_after_days,
+                       unsorted = unsorted)
+    retired <- character()
+    for (rec in trecs) {
+        if (!(rec$id %in% due)) {
+            next
+        }
+        if (isTRUE(dry_run)) {
+            message("cerebelo: would retire topic ", rec$id, " (", rec$label,
+                    ", idle since ", format(rec$last_active), ")")
+            retired <- c(retired, rec$id)
+            next
+        }
+        ok <- tryCatch({
+            .retire_one(client, rec)
+            TRUE
+        }, error = function(e) {
+            message("cerebelo: retire of ", rec$id, " failed: ",
+                    conditionMessage(e))
+            FALSE
+        })
+        if (ok) {
+            retired <- c(retired, rec$id)
+        }
+    }
+    retired
 }
 
 # A room's display name, falling back to its id when the name cannot
