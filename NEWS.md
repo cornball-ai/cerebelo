@@ -1,3 +1,13 @@
+# cerebelo 0.2.0.12
+
+- `sweep_segments()` gains `retire_topic_after_days`: a topic room with no
+  message of any sender for that many days has its lifecycle state flipped
+  to `"retired"`, which a cerebro client reads to drop it from the
+  sidebar. The Matrix room and its history stay, so a later mention reuses
+  it or opens a fresh one; the unsorted catch-all is never retired. Off by
+  default, and wired through the `lifecycle_sweep` capability as
+  `retire_topic_after_days`.
+
 # cerebelo 0.2.0.11
 
 - The fold sweep reuses an existing topic room when the classifier
