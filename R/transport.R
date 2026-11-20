@@ -318,8 +318,12 @@ ensure_matrix_space <- function(name, topic = NULL, invite = character(),
             invite = as.character(invite),
             creation_content = list(type = "m.space"))
         message("cerebelo: created Matrix space ", name, " -> ", sid)
-        .open_space_filing(client, sid, name)
     }
+    # On reuse as well as creation: a space made before this existed, or
+    # by a persona that could not lower the bar, stays invite-only until
+    # its creator passes through. .open_space_filing() is idempotent and
+    # creator-gated, so a non-creator's pass costs one read and no write.
+    .open_space_filing(client, sid, name)
     if (!is.null(instance_dir)) {
         state <- read_instance_state(instance_dir)
         spaces <- state$matrix_spaces %||% list()
@@ -330,16 +334,33 @@ ensure_matrix_space <- function(name, topic = NULL, invite = character(),
     sid
 }
 
-# Let every member of a new space file rooms under it.
+# Let every member of a space file rooms under it.
 #
 # m.space.child is a state event, so the default power levels want 50
 # for it, and from room version 12 the creator holds that power
 # implicitly while every other member sits at 0. A second persona
-# sharing the space then fails each filing and falls back to the
-# per-room invite the space exists to remove. Only the creator can
-# lower the level, which is why this runs at creation and not in
-# .file_in_space(). Read-merge-write: a power_levels event replaces the
-# whole content, and what the server set at creation stays as it was.
+# sharing the space then fails each filing and falls back to the per-room
+# invite the space exists to remove. Only the creator can lower the bar,
+# so this runs on every ensure_matrix_space(): the creator opens the
+# space on its pass, a plain member's write is refused and caught, and
+# once open it is a no-op for all. Read-merge-write: a power_levels event
+# replaces the whole content, so what the server set stays as it was.
+
+# Whether a space still needs opening to its members. "already" when
+# m.space.child already sits at 0 and every member can file; "open"
+# otherwise, left to the write (and its own auth check) to carry out --
+# the creator succeeds, a plain member's attempt is refused and caught.
+# Pure, so the idempotency is testable without a homeserver; who may
+# lower the bar is the server's call, not a guess from the state.
+.space_filing_action <- function(levels) {
+    events <- (levels %||% list())$events %||% list()
+    if (identical(as.numeric(events[["m.space.child"]] %||% NA_real_), 0)) {
+        "already"
+    } else {
+        "open"
+    }
+}
+
 .open_space_filing <- function(client, space_id, name) {
     ok <- tryCatch({
         levels <- chat.api::chat_get_state(client, space_id,
@@ -348,12 +369,17 @@ ensure_matrix_space <- function(name, topic = NULL, invite = character(),
         # go out as [] where the server expects {}. Absent means the same
         # default, so drop it.
         levels <- levels[lengths(levels) > 0L]
-        events <- levels$events %||% list()
-        events[["m.space.child"]] <- 0L
-        levels$events <- events
-        chat.api::chat_set_state(client, space_id, "m.room.power_levels",
-                                 levels)
-        TRUE
+        if (identical(.space_filing_action(levels), "already")) {
+            TRUE
+        } else {
+            events <- levels$events %||% list()
+            events[["m.space.child"]] <- 0L
+            levels$events <- events
+            chat.api::chat_set_state(client, space_id, "m.room.power_levels",
+                                     levels)
+            message("cerebelo: opened ", name, " to filing by its members")
+            TRUE
+        }
     }, error = function(e) {
         message("cerebelo: could not open ", name,
                 " to filing by its members: ", conditionMessage(e))

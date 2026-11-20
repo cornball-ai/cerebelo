@@ -122,3 +122,22 @@ expect_equal(read_state(root)$matrix_rooms[["~/newrepo"]], rid_new)
 expect_equal(cerebelo::resolve_room("!literal:test"), "!literal:test")
 
 unlink(root, recursive = TRUE)
+
+# ---- Opening a space to filing: the pure gate ----
+# .space_filing_action decides only whether the space already lets members
+# file. Who may lower the bar is the homeserver's call, left to the write.
+local({
+    act <- cerebelo:::.space_filing_action
+
+    # Already open at 0: members file without an invite, nothing to do.
+    expect_identical(act(list(events = list("m.space.child" = 0L))),
+        "already")
+
+    # The default 50 bar is not open; the write (creator) must lower it.
+    expect_identical(act(list(events = list("m.space.child" = 50L))),
+        "open")
+
+    # Bare power levels: m.space.child is absent, so not yet open.
+    expect_identical(act(list()), "open")
+    expect_identical(act(NULL), "open")
+})
