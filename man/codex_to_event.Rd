@@ -6,7 +6,7 @@
 codex_to_event(method, params, session_id, turn_id = NULL)
 }
 \arguments{
-\item{method}{The event method, such as \code{"item/agentMessage/delta"}.}
+\item{method}{The event method, such as \code{"item/completed"}.}
 
 \item{params}{The event parameters.}
 
@@ -25,7 +25,8 @@ Translates one notification from the Codex app server (as acp.api's
 carries nothing to show, or one not yet mapped.
 }
 \examples{
-p <- list(threadId = "t1", turnId = "u1", delta = "Hi.")
-str(codex_to_event("item/agentMessage/delta", p, "s1"))
+p <- list(turnId = "u1",
+          item = list(type = "agentMessage", id = "m1", text = "Hi."))
+str(codex_to_event("item/completed", p, "s1"))
 
 }

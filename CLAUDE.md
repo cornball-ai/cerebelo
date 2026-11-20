@@ -33,6 +33,33 @@ There are two supported repository shapes:
 The generator must support both without taking ownership of unrelated project
 files.
 
+## Architecture direction (decided 2026-11-19, lands post-CRAN)
+
+The three packages split by what the brain does, named for the anatomy:
+
+- **corteza** (cortex) is the agent engine: an LLM with a live R session,
+  tools, provenance, retrieval, a terminal CLI, and an ACP server. It requests
+  permission; it does not own a chat room.
+- **cerebelo** (cerebellum) is the coordinator: it owns the chat.api poll loop,
+  drives agents over acp.api (codex, claude, or corteza), holds the approval
+  policy and the conversation lifecycle, and renders agent events as
+  `ai.cornball.agent` cards. `run()` is that loop.
+- **cerebro** (cerebrum) is the Flutter client app that draws the cards. Not an
+  R package.
+
+Today cerebelo rides corteza's loop as hooks (`corteza::bot_run_init` with
+`on_clear`/`thread_context`/`on_archive`), which inverts the layers: the host
+plugs into the engine. The direction reverses that. The room layer (poll loop,
+approvals, job supervision, lifecycle) moves into cerebelo, and corteza becomes
+one pluggable ACP agent beside codex and claude. corteza keeps `bot_run()` as a
+self-hosted single-agent bot; nothing is removed in a hurry.
+
+Timing: this lands **after** corteza, acp.api, and cerebelo are back on CRAN.
+corteza ships to CRAN first, as is, with `bot_*` intact. The first step, already
+underway, is cerebelo's own acp.api drive loop (`R/drive.R`, `R/relay.R`,
+`R/agent_events.R`, `R/codex_events.R`) driving codex, proven before any corteza
+change. Migration detail lives in `~/tasks/cerebelo/`.
+
 ## Canonical persona shape
 
 | Path | Purpose | Tracking rule |

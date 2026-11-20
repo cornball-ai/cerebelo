@@ -1,5 +1,6 @@
 % tinyrox says don't edit this manually, but it can't stop you!
 \name{agent_events}
+\alias{agent_text}
 \alias{agent_events}
 \alias{agent_thought}
 \alias{agent_tool}
@@ -10,7 +11,7 @@
 \alias{agent_error}
 \title{Agent-session event payloads}
 \usage{
-agent_events(text, session_id, turn_id, message_id = NULL, final = FALSE)
+agent_text(text, session_id, turn_id, message_id = NULL, final = FALSE)
 
 agent_thought(text, session_id, turn_id, message_id = NULL)
 

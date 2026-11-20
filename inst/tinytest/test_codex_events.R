@@ -1,11 +1,14 @@
 library(tinytest)
 
-# item/agentMessage/delta -> text; turnId read without partial-matching turn.
-txt <- cerebelo::codex_to_event("item/agentMessage/delta",
-    list(threadId = "t1", turnId = "u1", delta = "Hi."), "s1")
+# item/completed{agentMessage} -> text; turnId read without partial-matching
+# turn. The item's whole text becomes one final card.
+txt <- cerebelo::codex_to_event("item/completed",
+    list(threadId = "t1", turnId = "u1",
+         item = list(type = "agentMessage", id = "m1", text = "Hi.")), "s1")
 expect_equal(txt$kind, "text")
 expect_equal(txt$text, "Hi.")
 expect_equal(txt$turn_id, "u1")
+expect_true(isTRUE(txt$final))
 
 # turn/completed -> turn_end; the id and status come from the nested turn.
 done <- cerebelo::codex_to_event("turn/completed",
@@ -23,15 +26,23 @@ expect_equal(cerebelo::codex_to_event("turn/completed",
     "failed")
 
 # An explicit turn_id wins over the event's.
-expect_equal(cerebelo::codex_to_event("item/agentMessage/delta",
-    list(turnId = "u1", delta = "x"), "s1", turn_id = "override")$turn_id,
+expect_equal(cerebelo::codex_to_event("item/completed",
+    list(turnId = "u1", item = list(type = "agentMessage", text = "x")),
+    "s1", turn_id = "override")$turn_id,
     "override")
 
-# A turn boundary and an unmapped item are both NULL.
+# A turn boundary and an unmapped item delta are both NULL.
 expect_null(cerebelo::codex_to_event("turn/started",
     list(turn = list(id = "u1")), "s1"))
 expect_null(cerebelo::codex_to_event("item/reasoning/delta",
     list(delta = "hmm"), "s1"))
+
+# A userMessage item (the prompt echoed back) and an empty agentMessage carry
+# nothing new, so both are NULL.
+expect_null(cerebelo::codex_to_event("item/completed",
+    list(turnId = "u1", item = list(type = "userMessage", text = "hi")), "s1"))
+expect_null(cerebelo::codex_to_event("item/completed",
+    list(turnId = "u1", item = list(type = "agentMessage", text = "")), "s1"))
 
 # A Codex approval request -> approval_request with the Codex decisions as
 # the option ids.
