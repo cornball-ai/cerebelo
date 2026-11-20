@@ -120,6 +120,7 @@ agent_error <- function(message, session_id, turn_id = NULL) {
 .agent_fallback <- function(event) {
     switch(event$kind,
            text = event$text %||% "",
+           thought = event$text %||% "",
            tool = sprintf("[tool] %s (%s)",
                           event$title %||% event$tool_kind %||% "tool",
                           event$status %||% "pending"),
@@ -127,8 +128,31 @@ agent_error <- function(message, session_id, turn_id = NULL) {
            approval_request = sprintf(
                                       "Approve %s? Reply /approve %s or /deny %s",
                                       event$title %||% "this", event$approval_id, event$approval_id),
+           turn_end = .turn_end_text(event),
+           session_info = .session_info_text(event),
            error = event$message %||% "",
            "")
+}
+
+# A turn's closing line: its short reply preview when one was kept, else a word
+# for how it ended, so the chat-list preview and a stock client are not blank.
+.turn_end_text <- function(event) {
+    preview <- event$preview %||% ""
+    if (nzchar(preview)) {
+        return(preview)
+    }
+    switch(event$stop_reason %||% "end_turn", end_turn = "Done",
+           cancelled = "Stopped", sprintf("Stopped (%s)", event$stop_reason))
+}
+
+# A session header line: the agent and, when known, its working directory.
+.session_info_text <- function(event) {
+    name <- event$title %||% event$agent %||% "agent"
+    if (!is.null(event$cwd) && nzchar(event$cwd)) {
+        sprintf("%s in %s", name, event$cwd)
+    } else {
+        name
+    }
 }
 
 .plan_text <- function(entries) {

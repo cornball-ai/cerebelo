@@ -44,11 +44,12 @@ plan <- cerebelo::agent_plan(
          list(content = "step two", status = "done")), "s1", "t1")
 expect_equal(cerebelo::agent_message(plan)$body,
              "- [pending] step one\n- [done] step two")
-# thought and turn_end carry an empty fallback; the app reads the key.
+# thought and turn_end carry a non-empty fallback body so stock clients
+# and the chat-list preview are not blank; the app still reads the key.
 expect_equal(cerebelo::agent_message(
-    cerebelo::agent_thought("hmm", "s1", "t1"))$body, "")
+    cerebelo::agent_thought("hmm", "s1", "t1"))$body, "hmm")
 expect_equal(cerebelo::agent_message(
-    cerebelo::agent_turn_end("s1", "t1", "end_turn"))$body, "")
+    cerebelo::agent_turn_end("s1", "t1", "end_turn"))$body, "Done")
 
 # ACP adapter: each update kind maps to its event; an unknown kind is NULL.
 txt <- cerebelo::acp_to_event(

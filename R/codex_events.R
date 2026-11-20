@@ -3,11 +3,17 @@
 # ACP; this maps what codex_listen delivers onto the shared agent_events()
 # payloads. R/agent_events.R holds the payloads and the ACP mapping.
 #
-# Mapped so far, from the events acp.api's Codex client exercises:
-# item/agentMessage/delta -> text, turn/completed -> turn_end, and a
-# .../requestApproval server request -> approval_request. Reasoning, tool and
-# plan items await their app-server v2 method names, confirmed against a live
-# session before mapping rather than guessed. Codex nests the turn under
+# Confirmed against a live session: the Codex app server reports work as items
+# with a lifecycle, item/started -> item/<kind>/delta -> item/completed, each
+# item carrying a type (userMessage, agentMessage, reasoning, and a command
+# item when a tool runs). An agentMessage item is the agent's reply; its text
+# is empty on started and whole on completed, and one turn can hold several (a
+# commentary preamble, then the final answer), so each is driven off its own
+# item/completed to become its own card rather than merged into one. A turn
+# ends with turn/completed, and a .../requestApproval server request maps to an
+# approval_request. Reasoning items and the command item stay unmapped until a
+# capture confirms their payload shapes; the box's bwrap sandbox blocks command
+# execution, so no command item has been seen yet. Codex nests the turn under
 # "turn", which partial-matches "turnId"; read every field with [[ ]].
 
 #' Map a Codex app-server event to an agent event
@@ -17,7 +23,7 @@
 #' \code{\link{agent_events}} payload. Returns \code{NULL} for an event that
 #' carries nothing to show, or one not yet mapped.
 #'
-#' @param method The event method, such as \code{"item/agentMessage/delta"}.
+#' @param method The event method, such as \code{"item/completed"}.
 #' @param params The event parameters.
 #' @param session_id The session the event belongs to.
 #' @param turn_id The turn, when the caller tracks it; otherwise read from
@@ -26,18 +32,36 @@
 #' @return An event payload, or \code{NULL}.
 #'
 #' @examples
-#' p <- list(threadId = "t1", turnId = "u1", delta = "Hi.")
-#' str(codex_to_event("item/agentMessage/delta", p, "s1"))
+#' p <- list(turnId = "u1",
+#'           item = list(type = "agentMessage", id = "m1", text = "Hi."))
+#' str(codex_to_event("item/completed", p, "s1"))
 #'
 #' @export
 codex_to_event <- function(method, params, session_id, turn_id = NULL) {
     tid <- turn_id %||% params[["turnId"]] %||% params[["turn"]][["id"]]
     switch(method,
-           `item/agentMessage/delta` = agent_text(params[["delta"]] %||% "",
-            session_id, tid),
+           `item/completed` = .codex_item_event(params[["item"]], session_id, tid),
            `turn/completed` = agent_turn_end(session_id, tid,
             .codex_stop_reason(params[["turn"]][["status"]])),
            NULL)
+}
+
+# A finished Codex item as an agent event, by its type. An agentMessage is the
+# agent's reply, whole in item$text, with its id grouping the message; a turn's
+# commentary and final answer arrive as separate agentMessage items and so
+# become separate cards. A userMessage is the prompt echoed back and carries
+# nothing new. Reasoning and command items stay unmapped until a live capture
+# confirms their shapes.
+.codex_item_event <- function(item, session_id, tid) {
+    type <- item[["type"]]
+    if (is.null(type) || !identical(type, "agentMessage")) {
+        return(NULL)
+    }
+    text <- item[["text"]] %||% ""
+    if (!nzchar(text)) {
+        return(NULL)
+    }
+    agent_text(text, session_id, tid, message_id = item[["id"]], final = TRUE)
 }
 
 #' Map a Codex approval request to an approval event

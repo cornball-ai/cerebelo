@@ -29,6 +29,7 @@ Imports:
     utils,
     yaml
 Suggests:
+    acp.api,
     fortunes,
     hacer,
     mx.client,
