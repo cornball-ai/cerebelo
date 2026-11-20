@@ -1,3 +1,17 @@
+# cerebelo 0.2.0.10
+
+- `drive_codex_once()` drives one Codex turn over acp.api into a room,
+  rendering the agent's events as `ai.cornball.agent` cards through
+  chat.api; `capture_to_file()` records the raw event stream. The first
+  half of `run()`'s loop for a room backed by an external ACP agent.
+- `codex_to_event()` moves to Codex's confirmed item model: an
+  `item/completed` agentMessage becomes its own text card, so a turn's
+  commentary preamble and final answer stay separate, and
+  `turn/completed` becomes a turn end.
+- `agent_events()` gives `thought`, `turn_end` and `session_info` a
+  non-empty fallback body, so stock clients and the chat-list preview
+  are not blank.
+
 # cerebelo 0.2.0.9
 
 - The agent-session relay's provider-agnostic core. `session_registry()`,
